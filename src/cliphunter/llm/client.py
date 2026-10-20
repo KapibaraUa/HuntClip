@@ -127,7 +127,7 @@ class GeminiVideoClient:
         *,
         stage: str,
         mode: str,
-        video: dict[str, Any],
+        video: dict[str, Any] | list[dict[str, Any]],
         prompt: str,
         system: str | None = None,
         schema: type[BaseModel] | None = None,
@@ -154,9 +154,14 @@ class GeminiVideoClient:
 
         self.budget.check(estimated_cost_usd)
 
+        input_parts: list[dict[str, Any]] = (
+            [*video, {"type": "text", "text": prompt}]
+            if isinstance(video, list)
+            else [video, {"type": "text", "text": prompt}]
+        )
         body: dict[str, Any] = {
             "model": model,
-            "input": [video, {"type": "text", "text": prompt}],  # text after video (docs)
+            "input": input_parts,  # text after video(s) (docs)
             "generation_config": {"thinking_level": thinking},
         }
         if system:
