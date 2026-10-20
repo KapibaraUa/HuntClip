@@ -2,16 +2,16 @@
 
 Gemini смотрит запись стрима (кадры и звук, без транскрипции), находит лучшие моменты, приложение вырезает их и отдаёт клипы. Полное ТЗ: [docs/plan.md](docs/plan.md).
 
-**Статус:** фаза 1 (CLI MVP). См. [docs/PROGRESS.md](docs/PROGRESS.md).
+**Статус:** фаза 2 (Интеллект: Scan → Refine → Judge). См. [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Быстрый старт (Windows, ничего не ставится в систему)
 
-Нужны `uv`, `ffmpeg` в PATH и Docker Desktop (Docker только для Postgres и Redis, в фазе 1 не обязателен).
+Нужны `uv`, `ffmpeg` в PATH и Docker Desktop (Docker только для Postgres и Redis, в фазе 2 не обязателен).
 
 ```powershell
 uv sync --python 3.12          # создаёт .venv с Python 3.12 и зависимостями
 copy .env.example .env         # впиши GEMINI_API_KEY
-uv run pytest -q               # 74 теста проходят за пару секунд
+uv run pytest -q               # 93 теста проходят за несколько секунд
 uv run ruff check . ; uv run ruff format --check . ; uv run mypy
 ```
 
@@ -54,16 +54,31 @@ uv run ruff check . ; uv run ruff format --check . ; uv run mypy
 
 Все платные вызовы пишутся в `data/logs/api_calls.jsonl` (модель, режим, токены, цена, время), ответы кэшируются в `data/cache/llm/`.
 
+## Оценка качества и бенчмарк (Фаза 2)
+
+Скрипт `scripts/eval.py` рассчитывает Recall (IoU >= 0.5), Precision, F1, Mean Boundary Error до и после Refine+Snap, скорость и стоимость на эталонных стримах:
+
+```powershell
+# Сухой запуск бенчмарка на синтетических эталонах (0 USD):
+uv run python scripts/eval.py --dry-run
+# или через Makefile:
+make eval-dry
+
+# Запуск на размеченных стримах из папки golden/:
+uv run python scripts/eval.py
+```
+Отчёты сохраняются в `eval/reports/eval_<timestamp>.md` и `.json`.
+
 ## Структура
 
 См. раздел 5 плана. Реализованы модули:
 - `cli.py` (CLI интерфейс)
-- `models.py` (Domain models, Pydantic)
+- `models.py` (Domain models, Pydantic v2)
 - `ingest/` (`probe.py`, `files.py`, `youtube.py`)
 - `pipeline/` (`stages.py`, `chunking.py`, `merge.py`, `validate.py`, `timecodes.py`)
-- `llm/` (`client.py`, `scan.py`, `cache.py`, `budget.py`, `schemas.py`, `prompts.py`)
-- `video/` (`ffmpeg.py`, `cut.py`)
+- `llm/` (`client.py`, `scan.py`, `refine.py`, `judge.py`, `cache.py`, `budget.py`, `schemas.py`, `prompts.py`)
+- `video/` (`ffmpeg.py`, `cut.py`, `snap.py`)
 - `export/` (`manifest.py`)
-- `scripts/calibrate.py`
+- `scripts/` (`calibrate.py`, `eval.py`)
 
 Допущения: [docs/DECISIONS.md](docs/DECISIONS.md).
