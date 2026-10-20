@@ -1,4 +1,4 @@
-.PHONY: install lint fmt test up down calibrate-dry
+.PHONY: install lint fmt test up down calibrate-dry eval eval-dry
 
 install:
 	uv sync --python 3.12
@@ -24,3 +24,11 @@ down:
 # Prints the calibration plan and cost estimate. Sends nothing to the API.
 calibrate-dry:
 	uv run python scripts/calibrate.py --config calibration/calibration.yaml
+
+# Runs quality benchmark on golden sets and outputs markdown report.
+eval:
+	uv run python scripts/eval.py
+
+# Runs dry-run evaluation on synthetic benchmark fixtures without API calls.
+eval-dry:
+	uv run python scripts/eval.py --dry-run

@@ -1,0 +1,25 @@
+stream_id: "stream_gameplay"
+genre: "gameplay"
+duration_s: 1800.0
+source_path: "data/test_gameplay.mp4"
+expert_clips:
+  - id: "exp_g1"
+    start_s: 120.0
+    end_s: 155.0
+    category: "game_moment"
+    reason: "1v4 clutch play with pistol"
+  - id: "exp_g2"
+    start_s: 480.0
+    end_s: 520.0
+    category: "funny"
+    reason: "Vehicle flipped over teammate"
+  - id: "exp_g3"
+    start_s: 950.0
+    end_s: 990.0
+    category: "emotion"
+    reason: "Tournament victory reaction"
+  - id: "exp_g4"
+    start_s: 1400.0
+    end_s: 1435.0
+    category: "game_moment"
+    reason: "Sniper triple collateral"

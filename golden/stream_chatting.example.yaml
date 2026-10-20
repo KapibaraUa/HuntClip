@@ -1,0 +1,25 @@
+stream_id: "stream_chatting"
+genre: "just_chatting"
+duration_s: 2700.0
+source_path: "data/test_chatting.mp4"
+expert_clips:
+  - id: "exp_c1"
+    start_s: 300.0
+    end_s: 345.0
+    category: "story"
+    reason: "Hilarious story from elementary school"
+  - id: "exp_c2"
+    start_s: 820.0
+    end_s: 860.0
+    category: "funny"
+    reason: "Cat jumps directly onto keyboard"
+  - id: "exp_c3"
+    start_s: 1600.0
+    end_s: 1640.0
+    category: "opinion"
+    reason: "Hot take on video game monetization"
+  - id: "exp_c4"
+    start_s: 2150.0
+    end_s: 2190.0
+    category: "funny"
+    reason: "Streamer laughs so hard they drop headphones"

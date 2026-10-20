@@ -1,0 +1,30 @@
+stream_id: "stream_podcast"
+genre: "podcast"
+duration_s: 3600.0
+source_path: "data/test_podcast.mp4"
+expert_clips:
+  - id: "exp_d1"
+    start_s: 240.0
+    end_s: 285.0
+    category: "conflict"
+    reason: "Heated argument on AI in creativity"
+  - id: "exp_d2"
+    start_s: 900.0
+    end_s: 940.0
+    category: "fact_advice"
+    reason: "Practical advice on audience building"
+  - id: "exp_d3"
+    start_s: 1850.0
+    end_s: 1895.0
+    category: "story"
+    reason: "Unexpected story of early career mistake"
+  - id: "exp_d4"
+    start_s: 2700.0
+    end_s: 2740.0
+    category: "quote"
+    reason: "Profound closing thought from guest"
+  - id: "exp_d5"
+    start_s: 3300.0
+    end_s: 3340.0
+    category: "funny"
+    reason: "Funny outtake during live stream"
