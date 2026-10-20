@@ -1,0 +1,19 @@
+game: "<название игры или темы>"
+channel: evelone2004
+language: ru
+
+# Источник: публичная ссылка YouTube ИЛИ локальный файл (source_file: C:/path/stream.mp4)
+source_url: "https://www.youtube.com/watch?v=XXXXXXXXXXX"
+
+# Кусок 10 минут для file-mode (пункты 3-7), секунды от начала видео
+chunk_start_s: 4200
+chunk_len_s: 600
+
+# Окно 5 минут для url-mode (пункты 1-2); по умолчанию начало совпадает с chunk_start_s
+url_window_start_s: 4200
+url_window_len_s: 300
+
+# Эталонные моменты: секунды от начала ВСЕГО видео (не от начала куска)
+moments:
+  - {start_s: 4215, end_s: 4250, note: "пример: истерика после фейла"}
+  - {start_s: 4390, end_s: 4430, note: "пример: клатч"}
