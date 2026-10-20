@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+data/
+eval/reports/
+calibration/
+*.mp4
+*.mkv
+*.webm
+*.mov
+node_modules/

@@ -1,0 +1,10 @@
+name: default
+language: ru
+game: ""
+facecam_rect: null      # фаза 4: доли кадра {x, y, w, h} от 0 до 1
+gameplay_rect: null
+clip_min_s: 20
+clip_max_s: 90
+prompt_addon: ""
+template: null
+watermark: null
