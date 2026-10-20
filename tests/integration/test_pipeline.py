@@ -33,7 +33,44 @@ class MockInteractionsAPI:
 
     def create(self, **body: Any) -> Any:
         self.call_count += 1
-        resp = json.dumps({"notes": None, "clips": self.clips})
+        fmt = body.get("response_format", {})
+        schema = fmt.get("schema", {})
+        title = schema.get("title", "")
+        if title == "RefineResponse" or "verdict" in schema.get("properties", {}):
+            resp = json.dumps(
+                {
+                    "verdict": "keep",
+                    "start": "00:03",
+                    "end": "00:23",
+                    "score": 9,
+                    "cut_inside": [],
+                    "reason": "Clear punchline and reaction",
+                }
+            )
+        elif title == "JudgeResponse" or "items" in schema.get("properties", {}):
+            input_parts = body.get("input", [])
+            video_count = sum(
+                1 for p in input_parts if isinstance(p, dict) and p.get("type") == "video"
+            )
+            video_count = max(1, video_count)
+            items = [
+                {
+                    "clip_index": i,
+                    "verdict": "keep",
+                    "score": 9,
+                    "hook": 9,
+                    "emotion": 9,
+                    "completeness": 9,
+                    "standalone": 9,
+                    "reason": "High viral potential",
+                    "title_options": ["Clip Title A", "Clip Title B"],
+                }
+                for i in range(1, video_count + 1)
+            ]
+            resp = json.dumps({"items": items})
+        else:
+            resp = json.dumps({"notes": None, "clips": self.clips})
+
         usage = SimpleNamespace(
             total_input_tokens=10000,
             total_output_tokens=300,
@@ -118,7 +155,7 @@ def test_full_pipeline_run_and_idempotence(tmp_path: Path) -> None:
     assert job.stage == StageEnum.DONE
     assert len(job.rendered_clips) == 1
     assert job.cost_usd > 0.0
-    assert sdk.interactions.call_count == 1
+    assert sdk.interactions.call_count == 3
 
     out_clip = Path(job.rendered_clips[0]["output_file"])
     assert out_clip.exists()
@@ -131,7 +168,7 @@ def test_full_pipeline_run_and_idempotence(tmp_path: Path) -> None:
     assert job2.status == "completed"
     assert len(job2.rendered_clips) == 1
     # Gemini API call was NOT repeated because response was cached
-    assert sdk.interactions.call_count == 1
+    assert sdk.interactions.call_count == 3
 
 
 def test_pipeline_resumes_after_failure(tmp_path: Path) -> None:

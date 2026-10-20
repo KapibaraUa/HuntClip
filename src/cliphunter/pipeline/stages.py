@@ -15,6 +15,8 @@ from cliphunter.ingest.probe import probe_source
 from cliphunter.ingest.youtube import download_section
 from cliphunter.llm.budget import Budget, estimate_video_cost
 from cliphunter.llm.client import GeminiVideoClient
+from cliphunter.llm.judge import judge_candidates
+from cliphunter.llm.refine import refine_candidates
 from cliphunter.llm.scan import scan_chunk
 from cliphunter.logging import set_job_id
 from cliphunter.models import (
@@ -173,6 +175,26 @@ class PipelineRunner:
         # S4: Merge & Dedupe
         if job.stage == StageEnum.S4_MERGE:
             job.candidates = merge_and_dedupe(job.candidates, source.duration_s, self.settings)
+            job.stage = StageEnum.S5_REFINE
+            save_job_state(job, job_dir)
+
+        # S5: Refine (Pass 2) & Snap
+        if job.stage == StageEnum.S5_REFINE:
+            log.info("Refining %d candidates (Pass 2)...", len(job.candidates))
+            assert self.client is not None
+            job.candidates = refine_candidates(
+                job.candidates, job, self.client, self.settings, work_dir
+            )
+            job.stage = StageEnum.S6_JUDGE
+            save_job_state(job, job_dir)
+
+        # S6: Judge (Pass 3)
+        if job.stage == StageEnum.S6_JUDGE:
+            log.info("Judging %d refined candidates (Pass 3)...", len(job.candidates))
+            assert self.client is not None
+            job.candidates = judge_candidates(
+                job.candidates, job, self.client, self.settings, work_dir
+            )
             job.stage = StageEnum.S7_CUT
             save_job_state(job, job_dir)
 

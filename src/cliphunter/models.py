@@ -35,6 +35,8 @@ class StageEnum(enum.StrEnum):
     S2_CHUNK_PLAN = "s2_chunk_plan"
     S3_SCAN = "s3_scan"
     S4_MERGE = "s4_merge"
+    S5_REFINE = "s5_refine"
+    S6_JUDGE = "s6_judge"
     S7_CUT = "s7_cut"
     DONE = "done"
     FAILED = "failed"
