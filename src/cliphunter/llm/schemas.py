@@ -22,13 +22,13 @@ class ScanClip(BaseModel):
     confidence_timestamps: Literal["high", "medium", "low"]
     category: Category
     working_title: str
-    hook_text: str | None
+    hook_text: str | None = None
     visual_hook: str
     what_happens: str
     visual_evidence: str
     audio_evidence: str
     why_viral: str
-    ending_text: str | None
+    ending_text: str | None = None
     cuttable_inside: list[CutRange] = []
     title_options: list[str]
     score: int = Field(ge=1, le=10)
@@ -36,14 +36,14 @@ class ScanClip(BaseModel):
 
 
 class ScanResponse(BaseModel):
-    notes: str | None
+    notes: str | None = None
     clips: list[ScanClip]
 
 
 class RefineResponse(BaseModel):
     verdict: Literal["keep", "drop"]
-    start: str | None
-    end: str | None
+    start: str | None = None
+    end: str | None = None
     cut_inside: list[CutRange] = []
     score: int = Field(ge=1, le=10)
     reason: str
