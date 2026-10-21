@@ -2,16 +2,22 @@
 
 Gemini смотрит запись стрима (кадры и звук, без транскрипции), находит лучшие моменты, приложение вырезает их и отдаёт клипы. Полное ТЗ: [docs/plan.md](docs/plan.md).
 
-**Статус:** фаза 6 (Удобства — готова к проверке). См. [docs/PROGRESS.md](docs/PROGRESS.md).
+**Статус:** фаза 7 (Полировка — готова к проверке; все фазы 0–7 реализованы). См. [docs/PROGRESS.md](docs/PROGRESS.md) и [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
-## Быстрый старт (Windows, ничего не ставится в систему)
+## Быстрый старт (Windows / Linux, ничего не ставится в систему)
 
 Нужны `uv` и `ffmpeg` в PATH (Docker опционален — по умолчанию база SQLite работает автономно).
 
 ```powershell
-uv sync --python 3.12          # создаёт .venv с Python 3.12 и зависимостями
-copy .env.example .env         # впиши GEMINI_API_KEY
-uv run pytest -q               # 100 тестов проходят без платных вызовов
+# Автоматическая установка, создание .env, инициализация БД и проверка окружения:
+powershell -ExecutionPolicy Bypass -File scripts/install.ps1
+# (или на Linux/macOS/WSL: bash scripts/install.sh)
+
+# Или вручную:
+uv sync --python 3.12                      # создаёт .venv с Python 3.12 и зависимостями
+copy .env.example .env                     # впиши GEMINI_API_KEY
+uv run python scripts/check_env.py --init-db
+uv run pytest -q                           # 137 тестов проходят без платных вызовов
 uv run ruff check . ; uv run ruff format --check . ; uv run mypy
 ```
 
@@ -123,6 +129,30 @@ uv run cliphunter batch --file streams.txt --yes --capcut
 - Промпт-надстройка для подсказок Gemini (характерный стиль стрима, шутки, реакции).
 - Создание новых профилей и мгновенное сохранение через `PUT /api/profiles/{name}`.
 
+## Обслуживание, резервное копирование и ротация данных (Фаза 7)
+
+### 1. Резервное копирование и восстановление БД (`backup`)
+Создаёт сжатый онлайн-снимок базы данных (`data/backups/cliphunter_backup_YYYYMMDD_HHMMSS.sqlite3.gz`) и автоматически удаляет старые архивы сверх лимита `--keep`:
+```powershell
+uv run cliphunter backup --keep 7
+uv run cliphunter backup --list
+uv run cliphunter backup --restore data/backups/cliphunter_backup_20261021_120000.sqlite3.gz
+```
+
+### 2. Очистка устаревших файлов и ротация логов (`cleanup`)
+Удаляет временные исходники (`data/sources`), прокси (`data/proxies`), загрузки (`data/uploads`), кэш LLM и рабочие файлы задач (`data/jobs/*/work/*.mp4`) старше `RETENTION_DAYS` (14 дней по умолчанию), **сохраняя** `state.json` и готовые смонтированные клипы в `out/`. Также сжимает логи (`data/logs/api_calls.jsonl` → `.gz`):
+```powershell
+# Безопасный предпросмотр без удаления:
+uv run cliphunter cleanup --dry-run
+
+# Очистка файлов старше 14 дней и ротация логов:
+uv run cliphunter cleanup --days 14 --force-log-rotate
+```
+Также доступны системные API эндпоинты: `GET /api/system/storage`, `POST /api/system/backup`, `POST /api/system/cleanup`.
+
+### 3. Известные ограничения
+Полный перечень лимитов Gemini Interactions API, `yt-dlp`, CapCut Desktop `9.6.0.4097`, Telegram Bot API (50 МБ) и особенностей SQLite/PostgreSQL задокументирован в [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
+
 ## Калибровка (фаза 0)
 
 1. Скопируй `golden/calibration.example.yaml` в `calibration/calibration.yaml`: ссылка на публичный стрим, окно 10 минут и эталонные моменты.
@@ -155,19 +185,20 @@ uv run python scripts/eval.py
 ## Структура
 
 См. раздел 5 плана. Реализованы модули:
-- `api/` (FastAPI роутеры: uploads, jobs, candidates, clips, profiles, media range streaming, SSE broadcaster)
+- `api/` (FastAPI роутеры: uploads, jobs, candidates, clips, profiles, system, media range streaming, SSE broadcaster)
 - `bot/` (Telegram-бот aiogram 3: ссылки, файлы, подтверждения, стриминг прогресса, доставка клипов)
 - `db/` (SQLAlchemy 2.0 async ORM models, session manager, CRUD repo, Alembic миграции)
+- `maintenance/` (`backup.py`, `cleanup.py`: бэкап/восстановление БД, очистка по `RETENTION_DAYS`, ротация логов)
 - `worker/` (Асинхронный фоновый менеджер задач, шлюз awaiting_review, рендерер)
 - `web/` (Single Page App: dark-theme интерфейс нарезчика, 4 экрана, плеер, скраббер, редактор профилей, модальные окна)
-- `cli.py` (CLI интерфейс: run, estimate, capcut-export, serve, bot, live, batch)
+- `cli.py` (CLI интерфейс: run, estimate, capcut-export, serve, bot, live, batch, backup, cleanup)
 - `models.py` (Domain models, Pydantic v2)
 - `ingest/` (`probe.py`, `files.py`, `youtube.py`, `live.py`)
 - `pipeline/` (`stages.py`, `chunking.py`, `merge.py`, `validate.py`, `timecodes.py`)
 - `llm/` (`client.py`, `scan.py`, `refine.py`, `judge.py`, `cache.py`, `budget.py`, `schemas.py`, `prompts.py`)
 - `video/` (`ffmpeg.py`, `cut.py`, `snap.py`, `layouts.py`, `render.py`, `template.py`, `subtitles.py`)
 - `export/` (`manifest.py`, `capcut.py`)
-- `scripts/` (`calibrate.py`, `eval.py`)
+- `scripts/` (`calibrate.py`, `eval.py`, `check_env.py`, `install.ps1`, `install.sh`)
 
 Допущения: [docs/DECISIONS.md](docs/DECISIONS.md).
 

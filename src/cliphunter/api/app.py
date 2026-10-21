@@ -20,6 +20,7 @@ from cliphunter.api.routes_clips import router as clips_router
 from cliphunter.api.routes_jobs import router as jobs_router
 from cliphunter.api.routes_media import router as media_router
 from cliphunter.api.routes_profiles import router as profiles_router
+from cliphunter.api.routes_system import router as system_router
 from cliphunter.api.routes_uploads import router as uploads_router
 from cliphunter.config import Settings
 from cliphunter.db.session import init_db
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
     app.include_router(clips_router)
     app.include_router(profiles_router)
     app.include_router(media_router)
+    app.include_router(system_router)
 
     # Serve static files and Single Page App (Web UI)
     if WEB_DIR.exists():

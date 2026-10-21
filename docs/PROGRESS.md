@@ -9,7 +9,7 @@
 | 4. Монтаж | **ждёт проверки** (layouts 9:16/16:9, loudnorm, drawtext, ass, ffprobe) |
 | 5. Экспорт в CapCut | **ждёт проверки** (`export/capcut.py`, CapCut 9.6.0.4097, CLI/API/UI) |
 | 6. Удобства | **ждёт проверки** (Telegram-бот aiogram 3, live-запись стримов, Twitch, batch, редактор профилей) |
-| 7. Полировка | не начата |
+| 7. Полировка | **ждёт проверки** (бэкап БД, ротация данных и логов по RETENTION_DAYS, скрипт установки, LIMITATIONS.md) |
 
 Отчёты по фазам:
 - Фаза 0: [reports/phase-0.md](../reports/phase-0.md)
@@ -19,3 +19,4 @@
 - Фаза 4: [reports/phase-4.md](../reports/phase-4.md)
 - Фаза 5: [reports/phase-5.md](../reports/phase-5.md)
 - Фаза 6: [reports/phase-6.md](../reports/phase-6.md)
+- Фаза 7: [reports/phase-7.md](../reports/phase-7.md)

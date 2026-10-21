@@ -122,4 +122,24 @@
     - Форма позволяет интерактивно настраивать: имя, язык, игру/категорию, мин/макс длительность клипов, нормализованные координаты вебкамеры (`facecam_rect`: X, Y, W, H) и персональную промпт-надстройку для Gemini.
     - Сохранение выполняется через `PUT /api/profiles/{name}` с мгновенным обновлением списка профилей на главной странице без перезагрузки браузера.
 
+## Фаза 7 (Полировка)
+
+57. **Резервное копирование и восстановление БД (`src/cliphunter/maintenance/backup.py`):**
+    - Для автономной SQLite БД используется нативный онлайн-бэкап `sqlite3.Connection.backup()`, гарантирующий консистентный снимок даже при активных чтениях/записях без повреждения файла.
+    - Снимок автоматически сжимается через `gzip` в `data/backups/cliphunter_backup_YYYYMMDD_HHMMSS.sqlite3.gz`. Для PostgreSQL поддерживается вызов `pg_dump` со сжатием в `.sql.gz`.
+    - Встроена ротация бэкапов (`keep_last=7` по умолчанию): хранятся 7 последних архивов, более старые удаляются.
+    - При восстановлении (`restore_database`) проверяется целостность архива через `PRAGMA integrity_check`, а текущая БД предварительно сохраняется в `.pre_restore.bak`.
+58. **Очистка устаревших данных по `RETENTION_DAYS` и ротация логов (`src/cliphunter/maintenance/cleanup.py`):**
+    - `cleanup_expired_data()` удаляет файлы старше `RETENTION_DAYS` (14 дней по умолчанию) из `data/sources/`, `data/proxies/`, `data/uploads/`, `data/live/`, `data/cache/llm/` и временных рабочих папок задач `data/jobs/*/work/`.
+    - **Важный инвариант сохранности:** файлы состояния задач (`state.json`) и финальные смонтированные клипы (`data/jobs/*/out/*.mp4`, черновики CapCut) никогда не удаляются автоматической очисткой.
+    - `rotate_logs()` сжимает `data/logs/api_calls.jsonl` и `.log`-файлы в `.gz`-архивы при превышении порога (10 МБ по умолчанию или по флагу `--force-log-rotate`) и обнуляет активный лог-файл без разрыва дескрипторов, сохраняя последние 10 архивов.
+59. **CLI и API для обслуживания:**
+    - В CLI добавлены команды `cliphunter backup [--out-dir] [--keep] [--restore] [--list]` и `cliphunter cleanup [--days] [--dry-run] [--force-log-rotate]`.
+    - В FastAPI добавлен системный роутер `/api/system` (`GET /api/system/storage`, `POST /api/system/backup`, `POST /api/system/cleanup`).
+60. **Скрипты установки и диагностики окружения (`scripts/install.ps1`, `scripts/install.sh`, `scripts/check_env.py`):**
+    - Скрипт `scripts/check_env.py` проверяет версию Python (>=3.12), наличие `ffmpeg`, `ffprobe`, аппаратного кодека `h264_nvenc`, модуля `yt-dlp`, файла `.env`, папки черновиков CapCut Desktop и по флагу `--init-db` создаёт таблицы БД и заполняет стартовые профили стримеров.
+    - В `.env.example` значение `DATABASE_URL` по умолчанию синхронизировано с `config.py` (`sqlite+aiosqlite:///data/cliphunter.db`), чтобы копирование `.env.example -> .env` работало без запущенного контейнера PostgreSQL.
+61. **Документация известных ограничений (`docs/LIMITATIONS.md`):**
+    - Сформирован подробный перечень ограничений по квотам Gemini Interactions API, TTL файлов в Files API (~48 ч), закрытым VOD (Sub-only/Members-only), привязке схемы черновиков к CapCut Desktop `9.6.0.4097`, лимиту 50 МБ в Telegram Bot API и особенностям SQLite vs PostgreSQL.
+
 

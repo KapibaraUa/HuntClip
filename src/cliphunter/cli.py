@@ -183,6 +183,55 @@ def build_parser() -> argparse.ArgumentParser:
         help="Also export CapCut Desktop drafts",
     )
 
+    # cliphunter backup [--out-dir DIR] [--keep N] [--restore PATH] [--list]
+    backup_parser = subparsers.add_parser(
+        "backup", help="Create, list, or restore compressed database backups"
+    )
+    backup_parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        help="Directory for backup archives (default: data/backups)",
+    )
+    backup_parser.add_argument(
+        "--keep",
+        type=int,
+        default=7,
+        help="Number of recent backup snapshots to retain (default: 7)",
+    )
+    backup_parser.add_argument(
+        "--restore",
+        type=Path,
+        default=None,
+        help="Restore SQLite database from the given backup file",
+    )
+    backup_parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List existing database backups",
+    )
+
+    # cliphunter cleanup [--days N] [--dry-run] [--force-log-rotate]
+    cleanup_parser = subparsers.add_parser(
+        "cleanup", help="Purge expired sources, proxies, work files, and rotate logs"
+    )
+    cleanup_parser.add_argument(
+        "--days",
+        type=int,
+        default=None,
+        help="Retention period in days (default: RETENTION_DAYS from settings)",
+    )
+    cleanup_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report files that would be removed without deleting them",
+    )
+    cleanup_parser.add_argument(
+        "--force-log-rotate",
+        action="store_true",
+        help="Force rotation of non-empty log files regardless of size",
+    )
+
     return parser
 
 
@@ -369,6 +418,56 @@ def main(argv: list[str] | None = None) -> int:
 
         print(f"\nBatch processing finished: {success_count}/{len(targets)} jobs succeeded.")
         return 0 if success_count == len(targets) else 1
+
+    if args.command == "backup":
+        from cliphunter.maintenance.backup import (
+            backup_database,
+            list_backups,
+            restore_database,
+        )
+
+        if args.list:
+            backups = list_backups(out_dir=args.out_dir, settings=settings)
+            if not backups:
+                print("No database backups found.")
+                return 0
+            print(f"Found {len(backups)} backup(s):")
+            for b in backups:
+                print(f" - {b['name']} ({b['size_bytes']} bytes, {b['created_at']})")
+            return 0
+
+        if args.restore is not None:
+            try:
+                restored = restore_database(args.restore, settings=settings)
+                print(f"Database restored successfully to: {restored}")
+                return 0
+            except Exception as exc:
+                print(f"Database restore failed: {exc}", file=sys.stderr)
+                return 1
+
+        try:
+            archive = backup_database(settings=settings, out_dir=args.out_dir, keep_last=args.keep)
+            print(f"Database backup created: {archive} ({archive.stat().st_size} bytes)")
+            return 0
+        except Exception as exc:
+            print(f"Database backup failed: {exc}", file=sys.stderr)
+            return 1
+
+    if args.command == "cleanup":
+        from cliphunter.maintenance.cleanup import cleanup_expired_data
+
+        report = cleanup_expired_data(
+            settings=settings,
+            retention_days=args.days,
+            dry_run=args.dry_run,
+            force_log_rotate=args.force_log_rotate,
+        )
+        mode_str = " (DRY RUN)" if report.dry_run else ""
+        print(f"Retention cleanup finished{mode_str} (threshold: {report.retention_days} days):")
+        print(f" - Files deleted: {report.deleted_files_count}")
+        print(f" - Space freed:   {report.freed_mb:.2f} MB ({report.freed_bytes} bytes)")
+        print(f" - Logs rotated:  {report.rotated_logs_count}")
+        return 0
 
     return 0
 
