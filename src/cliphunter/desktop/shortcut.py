@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import subprocess
@@ -148,10 +149,8 @@ def create_desktop_shortcut(
     icon_path = assets_dir / "cliphunter.ico"
     generate_desktop_icon(icon_path)
     # Also keep icon.ico in sync
-    try:
+    with contextlib.suppress(Exception):
         (assets_dir / "icon.ico").write_bytes(icon_path.read_bytes())
-    except Exception:
-        pass
 
     # Launcher batch file
     bat_path = project_root / "ClipHunter.bat"
@@ -172,10 +171,8 @@ WshShell.Run "uv run cliphunter desktop", 0, False
 
     # Unlink existing shortcut to ensure clean cache refresh
     if shortcut_path.exists():
-        try:
+        with contextlib.suppress(Exception):
             shortcut_path.unlink()
-        except Exception:
-            pass
 
     icon_win = str(icon_path.resolve())
     shortcut_win = str(shortcut_path.resolve())

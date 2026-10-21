@@ -1,0 +1,23 @@
+{
+  "scan_date": "2026-10-21T18:13:00Z",
+  "project_name": "HuntClip",
+  "framework": "Vanilla HTML5 / JS (FastAPI backend)",
+  "font_stack": {
+    "display": "Inter, 700/800",
+    "body": "Inter, 400/500",
+    "mono": "JetBrains Mono, 500/600"
+  },
+  "palette": {
+    "type": "Obsidian Studio Dark / CapCut Monochrome",
+    "paper": "oklch(12% 0.01 260)",
+    "ink": "oklch(98% 0 0)",
+    "accent": "oklch(62% 0.22 264)"
+  },
+  "motion_stance": "motion-cut (precision CSS transitions, no heavy animation libraries)",
+  "spacing_scale": "8-point grid (4/8/16/24/32px)",
+  "files_target": [
+    "src/cliphunter/web/index.html",
+    "src/cliphunter/web/static/style.css",
+    "src/cliphunter/web/static/app.js"
+  ]
+}

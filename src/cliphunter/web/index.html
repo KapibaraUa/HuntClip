@@ -57,6 +57,10 @@
       </nav>
 
       <div class="nav-actions">
+        <button class="btn btn-ghost btn-sm command-palette-trigger" id="btn-open-command-palette" title="Командная палитра (Ctrl+K)">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="kbd-pill">Ctrl K</span>
+        </button>
         <button class="btn btn-secondary btn-sm" id="btn-show-usage" title="Статистика токенов и расходов" style="display: none;">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           <span id="header-cost-pill">$0.00</span>
@@ -854,6 +858,20 @@
           <div class="jobs-list" id="recent-jobs-list">
             <!-- Dynamically populated -->
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Hallmark Command Palette (Ctrl+K) -->
+    <div class="modal-backdrop command-palette-backdrop" id="modal-command-palette" style="display: none;">
+      <div class="command-palette-dialog">
+        <div class="command-palette-input-wrap">
+          <svg class="palette-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="command-palette-input" class="command-palette-input" placeholder="Поиск действий, разделов, команд..." autocomplete="off">
+          <span class="palette-esc-hint">ESC</span>
+        </div>
+        <div class="command-palette-results" id="command-palette-results">
+          <!-- Populated by JS -->
         </div>
       </div>
     </div>

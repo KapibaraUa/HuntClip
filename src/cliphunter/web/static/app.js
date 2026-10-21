@@ -1452,8 +1452,236 @@
     }
   }
 
+  // Hallmark Command Palette (Ctrl+K)
+  function setupCommandPalette() {
+    const modal = document.getElementById('modal-command-palette');
+    const input = document.getElementById('command-palette-input');
+    const results = document.getElementById('command-palette-results');
+    const btnOpen = document.getElementById('btn-open-command-palette');
+
+    if (!modal || !input || !results) return;
+
+    const commands = [
+      {
+        id: 'new-job',
+        title: 'Новая задача',
+        badge: 'Экран 1',
+        icon: '<polygon points="5 3 19 12 5 21 5 3"/>',
+        run: () => switchScreen('screen-new-job'),
+      },
+      {
+        id: 'progress',
+        title: 'Ход текущей задачи',
+        badge: 'Экран 2',
+        icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        run: () => switchScreen('screen-progress'),
+      },
+      {
+        id: 'review',
+        title: 'Ревью и нарезка клипов',
+        badge: 'Экран 3',
+        icon: '<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/>',
+        run: () => switchScreen('screen-review'),
+      },
+      {
+        id: 'results',
+        title: 'Готовые результаты',
+        badge: 'Экран 4',
+        icon: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+        run: () => switchScreen('screen-results'),
+      },
+      {
+        id: 'settings',
+        title: 'Системные настройки и параметры',
+        badge: 'Экран 5',
+        icon: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="12" y1="21" x2="12" y2="12"/>',
+        run: () => {
+          switchScreen('screen-settings');
+          loadSystemSettingsScreen();
+        },
+      },
+      {
+        id: 'mode-studio',
+        title: 'Переключить в режим Google AI Studio (0 USD)',
+        badge: 'Режим',
+        icon: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+        run: () => {
+          switchScreen('screen-new-job');
+          if (el.btnModeStudio) el.btnModeStudio.click();
+        },
+      },
+      {
+        id: 'mode-api',
+        title: 'Переключить в режим Gemini API (Авто-поиск)',
+        badge: 'Режим',
+        icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        run: () => {
+          switchScreen('screen-new-job');
+          if (el.btnModeApi) el.btnModeApi.click();
+        },
+      },
+      {
+        id: 'open-clips',
+        title: 'Открыть папку готовых клипов в Проводнике',
+        badge: 'Проводник',
+        icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+        run: () => {
+          if (el.btnOpenClipsFolder) el.btnOpenClipsFolder.click();
+        },
+      },
+      {
+        id: 'open-capcut',
+        title: 'Открыть системную папку проектов CapCut Desktop',
+        badge: 'CapCut',
+        icon: '<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/>',
+        run: () => {
+          if (el.btnOpenCapcutFolder) el.btnOpenCapcutFolder.click();
+        },
+      },
+      {
+        id: 'recent-jobs',
+        title: 'История недавних задач',
+        badge: 'История',
+        icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+        run: () => {
+          if (el.btnRecentJobs) el.btnRecentJobs.click();
+        },
+      },
+      {
+        id: 'profiles',
+        title: 'Редактор профилей стримеров',
+        badge: 'Профили',
+        icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+        run: () => {
+          if (el.btnOpenProfiles) el.btnOpenProfiles.click();
+        },
+      },
+      {
+        id: 'backup',
+        title: 'Создать резервную копию базы данных (Бэкап)',
+        badge: 'БД',
+        icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>',
+        run: () => {
+          const btn = document.getElementById('btn-trigger-backup');
+          if (btn) btn.click();
+        },
+      },
+      {
+        id: 'cleanup',
+        title: 'Очистить устаревшие временные файлы',
+        badge: 'Диск',
+        icon: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+        run: () => {
+          const btn = document.getElementById('btn-trigger-cleanup');
+          if (btn) btn.click();
+        },
+      },
+    ];
+
+    let activeIdx = 0;
+    let filtered = commands;
+
+    function renderList() {
+      if (filtered.length === 0) {
+        results.innerHTML =
+          '<div style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.88rem;">Ничего не найдено</div>';
+        return;
+      }
+      results.innerHTML = filtered
+        .map(
+          (cmd, idx) => `
+        <div class="palette-item ${idx === activeIdx ? 'active' : ''}" data-idx="${idx}">
+          <div class="palette-item-left">
+            <svg class="palette-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${
+              cmd.icon
+            }</svg>
+            <span class="palette-item-title">${escapeHtml(cmd.title)}</span>
+          </div>
+          <span class="palette-item-badge">${cmd.badge}</span>
+        </div>
+      `
+        )
+        .join('');
+
+      results.querySelectorAll('.palette-item').forEach((item) => {
+        item.addEventListener('click', () => {
+          const idx = parseInt(item.dataset.idx, 10);
+          executeCommand(idx);
+        });
+      });
+    }
+
+    function openPalette() {
+      modal.style.display = 'flex';
+      input.value = '';
+      filtered = commands;
+      activeIdx = 0;
+      renderList();
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closePalette() {
+      modal.style.display = 'none';
+    }
+
+    function executeCommand(idx) {
+      const cmd = filtered[idx];
+      closePalette();
+      if (cmd && typeof cmd.run === 'function') {
+        cmd.run();
+      }
+    }
+
+    if (btnOpen) {
+      btnOpen.addEventListener('click', openPalette);
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closePalette();
+    });
+
+    input.addEventListener('input', () => {
+      const q = input.value.toLowerCase().trim();
+      filtered = commands.filter(
+        (c) => c.title.toLowerCase().includes(q) || c.badge.toLowerCase().includes(q)
+      );
+      activeIdx = 0;
+      renderList();
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closePalette();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIdx = (activeIdx + 1) % Math.max(1, filtered.length);
+        renderList();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIdx = (activeIdx - 1 + filtered.length) % Math.max(1, filtered.length);
+        renderList();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filtered.length > 0) executeCommand(activeIdx);
+      }
+    });
+
+    // Global shortcut Ctrl+K / Cmd+K
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (modal.style.display === 'flex') {
+          closePalette();
+        } else {
+          openPalette();
+        }
+      }
+    });
+  }
+
   // Initialization
   loadProfiles();
   setupUploadHandlers();
   setupDesktopHandlers();
+  setupCommandPalette();
 })();

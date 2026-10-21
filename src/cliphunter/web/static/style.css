@@ -1,6 +1,7 @@
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · theme: obsidian-cobalt */
 /* ==========================================================================
-   ClipHunter Bento Grid Design System
-   Style: Bento Box / Linear Obsidian Dark
+   HuntClip Studio Workbench Design System (Powered by Hallmark)
+   Genre: Modern-Minimal Dev-Tool / Studio Workbench
    Typography: Inter + JetBrains Mono
    ========================================================================== */
 
@@ -67,6 +68,7 @@ html {
   color: var(--text-main);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
 }
 
 body {
@@ -75,7 +77,7 @@ body {
   min-height: 100vh;
   background-color: var(--bg-base);
   color: var(--text-main);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Monospace Utilities */
@@ -1907,4 +1909,165 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================================================================
+   Hallmark Command Palette & 8-State Interactive Disciplines
+   ========================================================================== */
+
+/* Keyboard Pill (Command Palette Trigger) */
+.command-palette-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kbd-pill {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+/* 8-State Interactive Completeness */
+.btn:focus-visible, 
+.form-input:focus-visible, 
+.form-select:focus-visible, 
+.tab-btn:focus-visible,
+.nav-tab:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 2px !important;
+}
+
+.btn:active:not(:disabled),
+.tab-btn:active:not(:disabled),
+.chip:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* Command Palette Overlay */
+.command-palette-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  z-index: 2500;
+}
+
+.command-palette-dialog {
+  background: #111622;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 580px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(99, 102, 241, 0.25);
+  overflow: hidden;
+  animation: modalEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.command-palette-input-wrap {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 0.75rem;
+  background: #0E131E;
+}
+
+.palette-search-icon {
+  width: 20px;
+  height: 20px;
+  stroke: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.command-palette-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  outline: none;
+}
+
+.command-palette-input::placeholder {
+  color: var(--text-muted);
+}
+
+.palette-esc-hint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.command-palette-results {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-secondary);
+}
+
+.palette-item:hover, .palette-item.active {
+  background: var(--accent-soft);
+  color: #ffffff;
+}
+
+.palette-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.palette-item-icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+.palette-item-title {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.palette-item-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
 }
