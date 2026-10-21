@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+import os
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -13,6 +17,10 @@ from cliphunter.maintenance.cleanup import cleanup_expired_data, get_storage_sta
 from cliphunter.worker.tasks import task_manager
 
 router = APIRouter(prefix="/api/system", tags=["system"])
+
+
+class OpenFolderRequest(BaseModel):
+    target: Literal["out", "capcut", "backups", "data", "logs"] = "out"
 
 
 class CleanupRequest(BaseModel):
@@ -123,3 +131,40 @@ async def trigger_data_cleanup(req: CleanupRequest | None = None) -> dict[str, A
         force_log_rotate=payload.force_log_rotate,
     )
     return report.to_dict()
+
+
+@router.post("/open-folder")
+async def open_system_folder(req: OpenFolderRequest | None = None) -> dict[str, Any]:
+    """Opens a system directory in Windows Explorer (or OS file manager)."""
+    settings = Settings()
+    target = req.target if req is not None else "out"
+
+    target_path: Path
+    if target == "out":
+        target_path = Path(settings.data_dir) / "out"
+    elif target == "capcut":
+        from cliphunter.export.capcut import get_default_capcut_drafts_dir
+
+        target_path = get_default_capcut_drafts_dir()
+    elif target == "backups":
+        target_path = Path(settings.data_dir) / "backups"
+    elif target == "logs":
+        target_path = Path(settings.data_dir) / "logs"
+    elif target == "data":
+        target_path = Path(settings.data_dir)
+    else:
+        raise HTTPException(status_code=400, detail=f"Invalid folder target: {target}")
+
+    target_path.mkdir(parents=True, exist_ok=True)
+
+    try:
+        if sys.platform == "win32":
+            os.startfile(str(target_path))
+        elif sys.platform == "darwin":
+            subprocess.run(["open", str(target_path)], check=True)
+        else:
+            subprocess.run(["xdg-open", str(target_path)], check=True)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to open folder: {exc}") from exc
+
+    return {"status": "ok", "target": target, "path": str(target_path)}

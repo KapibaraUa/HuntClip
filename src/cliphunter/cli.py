@@ -266,6 +266,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Force rotation of non-empty log files regardless of size",
     )
 
+    # cliphunter desktop [--port PORT] [--install-shortcut]
+    desktop_parser = subparsers.add_parser(
+        "desktop", help="Launch ClipHunter as a standalone desktop application window"
+    )
+    desktop_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind")
+    desktop_parser.add_argument(
+        "--port", type=int, default=None, help="Port to bind (auto-selected if omitted)"
+    )
+    desktop_parser.add_argument(
+        "--install-shortcut", action="store_true", help="Create/update Windows Desktop shortcut"
+    )
+
+    # cliphunter install-shortcut
+    subparsers.add_parser(
+        "install-shortcut", help="Create a 'ClipHunter' shortcut on your Windows Desktop"
+    )
+
     return parser
 
 
@@ -533,6 +550,23 @@ def main(argv: list[str] | None = None) -> int:
         print(f" - Files deleted: {report.deleted_files_count}")
         print(f" - Space freed:   {report.freed_mb:.2f} MB ({report.freed_bytes} bytes)")
         print(f" - Logs rotated:  {report.rotated_logs_count}")
+        return 0
+
+    if args.command == "desktop":
+        from cliphunter.desktop.launcher import run_desktop
+
+        return run_desktop(
+            host=args.host,
+            port=args.port,
+            install_shortcut=args.install_shortcut,
+            project_root=Path.cwd(),
+        )
+
+    if args.command == "install-shortcut":
+        from cliphunter.desktop.shortcut import create_desktop_shortcut
+
+        path = create_desktop_shortcut(Path.cwd())
+        print(f"Desktop shortcut created successfully at:\n{path}")
         return 0
 
     return 0

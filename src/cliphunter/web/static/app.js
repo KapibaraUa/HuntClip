@@ -100,6 +100,10 @@
     clipsGridContainer: document.getElementById('clips-grid-container'),
     btnViewUsageFromResults: document.getElementById('btn-view-usage-from-results'),
     btnStartAnotherJob: document.getElementById('btn-start-another-job'),
+    btnOpenClipsFolder: document.getElementById('btn-open-clips-folder'),
+    badgeDesktopMode: document.getElementById('badge-desktop-mode'),
+    btnOpenOutFolder: document.getElementById('btn-open-out-folder'),
+    btnOpenCapcutFolder: document.getElementById('btn-open-capcut-folder'),
 
     // Modals
     modalAddMoment: document.getElementById('modal-add-moment'),
@@ -1412,7 +1416,38 @@
     });
   });
 
+  // Desktop App Mode & Folder Explorer Handlers
+  function setupDesktopHandlers() {
+    const isDesktop = window.location.search.includes('mode=desktop');
+    if (isDesktop && el.badgeDesktopMode) {
+      el.badgeDesktopMode.style.display = 'inline-block';
+    }
+
+    async function openFolder(target) {
+      try {
+        const res = await api('/api/system/open-folder', {
+          method: 'POST',
+          body: JSON.stringify({ target }),
+        });
+        showToast(`Папка открыта в проводнике: ${res.path}`, 'success');
+      } catch (e) {
+        showToast(`Не удалось открыть папку: ${e.message}`, 'error');
+      }
+    }
+
+    if (el.btnOpenClipsFolder) {
+      el.btnOpenClipsFolder.addEventListener('click', () => openFolder('out'));
+    }
+    if (el.btnOpenOutFolder) {
+      el.btnOpenOutFolder.addEventListener('click', () => openFolder('out'));
+    }
+    if (el.btnOpenCapcutFolder) {
+      el.btnOpenCapcutFolder.addEventListener('click', () => openFolder('capcut'));
+    }
+  }
+
   // Initialization
   loadProfiles();
   setupUploadHandlers();
+  setupDesktopHandlers();
 })();

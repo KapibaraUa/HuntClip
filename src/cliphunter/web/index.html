@@ -23,6 +23,7 @@
         <div class="brand-text">
           <span class="brand-name">ClipHunter</span>
           <span class="brand-badge">AI Studio</span>
+          <span class="badge" id="badge-desktop-mode" style="display: none; background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4); font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: 0.4rem;">🖥️ Desktop</span>
         </div>
       </div>
 
@@ -409,6 +410,10 @@
             </div>
           </div>
           <div class="banner-actions">
+            <button class="btn btn-secondary" id="btn-open-clips-folder" title="Открыть папку с готовыми видеофайлами в проводнике">
+              <span class="icon">📂</span>
+              <span>Открыть папку клипов</span>
+            </button>
             <button class="btn btn-secondary" id="btn-view-usage-from-results">
               <span class="icon">📊</span>
               <span>Полный отчёт о расходах</span>
@@ -531,6 +536,11 @@
                   <span class="est-val" id="storage-backups-count">—</span>
                 </div>
               </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+              <button type="button" class="btn btn-secondary" id="btn-open-out-folder">📂 Папка клипов</button>
+              <button type="button" class="btn btn-secondary" id="btn-open-capcut-folder">🎬 Проекты CapCut</button>
             </div>
 
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
