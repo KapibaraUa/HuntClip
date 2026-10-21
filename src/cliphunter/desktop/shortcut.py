@@ -35,30 +35,29 @@ def get_desktop_dir() -> Path:
     return Path.home() / "Desktop"
 
 
-def generate_desktop_icon(icon_path: Path) -> Path:
-    """Generates a high-quality Windows .ico icon file using System.Drawing if available."""
+def generate_desktop_icon(icon_path: Path, force: bool = False) -> Path:
+    """Generates a high-quality Windows .ico icon file in CapCut monochrome style."""
     icon_path.parent.mkdir(parents=True, exist_ok=True)
-    if icon_path.exists() and icon_path.stat().st_size > 0:
+    if not force and icon_path.exists() and icon_path.stat().st_size > 0:
         return icon_path
 
-    # PowerShell script creating a 256x256 modern gradient app icon
+    # PowerShell script creating a 256x256 modern CapCut-style monochrome app icon
     ps_script = f"""
 Add-Type -AssemblyName System.Drawing
-$bmp = New-Object System.Drawing.Bitmap 256, 256
+$size = 256
+$bmp = New-Object System.Drawing.Bitmap $size, $size
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+$g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
 
-# Background rounded rect
-$rect = New-Object System.Drawing.Rectangle 16, 16, 224, 224
-$brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
-    $rect,
-    [System.Drawing.Color]::FromArgb(255, 99, 102, 241),
-    [System.Drawing.Color]::FromArgb(255, 139, 92, 246),
-    45.0
-)
+$g.Clear([System.Drawing.Color]::Transparent)
+
+# Deep black squircle background (CapCut style)
+$rect = New-Object System.Drawing.Rectangle 12, 12, 232, 232
+$bgBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 10, 10, 12))
 $path = New-Object System.Drawing.Drawing2D.GraphicsPath
-$d = 48
-$r = [System.Drawing.Rectangle]::new($rect.X, $rect.Y, $d, $d)
+$d = 56
+$r = New-Object System.Drawing.Rectangle $rect.X, $rect.Y, $d, $d
 $path.AddArc($r, 180, 90)
 $r.X = $rect.Right - $d
 $path.AddArc($r, 270, 90)
@@ -67,23 +66,55 @@ $path.AddArc($r, 0, 90)
 $r.X = $rect.Left
 $path.AddArc($r, 90, 90)
 $path.CloseFigure()
-$g.FillPath($brush, $path)
+$g.FillPath($bgBrush, $path)
 
-# Play triangle (ClipHunter mark)
-$pts = @(
-    New-Object System.Drawing.PointF 100, 75
-    New-Object System.Drawing.PointF 100, 181
-    New-Object System.Drawing.PointF 185, 128
+# Subtle silver rim
+$rimPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(60, 255, 255, 255), 1.5)
+$g.DrawPath($rimPen, $path)
+
+# Target circle (radar)
+$circlePen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(35, 255, 255, 255), 1.5)
+$circlePen.DashStyle = [System.Drawing.Drawing2D.DashStyle]::Dash
+$g.DrawEllipse($circlePen, 78, 78, 100, 100)
+
+# Precision ticks
+$tickPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(255, 255, 255, 255), 2.0)
+$g.DrawLine($tickPen, 128, 40, 128, 54)
+$g.DrawLine($tickPen, 128, 202, 128, 216)
+$g.DrawLine($tickPen, 40, 128, 54, 128)
+$g.DrawLine($tickPen, 202, 128, 216, 128)
+
+# Bold C ribbon (pure white)
+$cPen = New-Object System.Drawing.Pen([System.Drawing.Color]::White, 14.0)
+$cPen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
+$cPen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+$g.DrawArc($cPen, 72, 72, 112, 112, 50, 260)
+
+# Play triangle (pure white)
+$playPts = @(
+    (New-Object System.Drawing.PointF 116, 90),
+    (New-Object System.Drawing.PointF 116, 166),
+    (New-Object System.Drawing.PointF 178, 128)
 )
 $whiteBrush = [System.Drawing.Brushes]::White
-$g.FillPolygon($whiteBrush, $pts)
+$g.FillPolygon($whiteBrush, $playPts)
+
+# Black gap outline for Play triangle
+$gapPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(255, 10, 10, 12), 3.0)
+$g.DrawPolygon($gapPen, $playPts)
+
+# Focal dot at tip of Play triangle
+$dotBrush = [System.Drawing.Brushes]::White
+$g.FillEllipse($dotBrush, 172, 122, 12, 12)
+$innerDot = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 10, 10, 12))
+$g.FillEllipse($innerDot, 176, 126, 4, 4)
 
 $g.Dispose()
 
-# Save as ICO
+# Save ICO
 $hIcon = $bmp.GetHicon()
 $icon = [System.Drawing.Icon]::FromHandle($hIcon)
-$fs = [System.IO.File]::OpenWrite('{icon_path.as_posix()}')
+$fs = [System.IO.File]::Create('{icon_path.as_posix()}')
 $icon.Save($fs)
 $fs.Close()
 $icon.Dispose()
