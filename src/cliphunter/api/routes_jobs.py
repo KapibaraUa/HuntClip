@@ -23,6 +23,7 @@ from cliphunter.db.repo import (
 )
 from cliphunter.db.session import get_db
 from cliphunter.ingest.probe import probe_source
+from cliphunter.ingest.studio import parse_studio_json
 from cliphunter.llm.budget import estimate_video_cost
 from cliphunter.models import Job, JobParams, Profile, Source, SourceKind
 from cliphunter.worker.tasks import task_manager
@@ -38,6 +39,13 @@ class CreateJobRequest(BaseModel):
     clip_max_s: float = 90.0
     max_cost_usd: float = 5.0
     auto_yes: bool = False
+    studio_json: str | None = None
+    layout: str = "original"
+    capcut_export: bool | None = None
+
+
+class ParseStudioJsonRequest(BaseModel):
+    raw_text: str
 
 
 class BatchJobRequest(BaseModel):
@@ -127,8 +135,11 @@ async def create_new_job(
         params=JobParams(
             clip_min_s=req.clip_min_s,
             clip_max_s=req.clip_max_s,
-            max_cost_usd=req.max_cost_usd,
+            max_cost_usd=0.0 if req.studio_json else req.max_cost_usd,
             auto_yes=req.auto_yes,
+            layout=req.layout,
+            capcut_export=req.capcut_export,
+            studio_json=req.studio_json,
         ),
     )
 
@@ -142,6 +153,31 @@ async def create_new_job(
     task_manager.start_job(job_id)
 
     return _job_to_dict(loaded_job)
+
+
+@router.post("/parse-studio-json")
+async def validate_and_parse_studio_json(req: ParseStudioJsonRequest) -> dict[str, Any]:
+    """Validates raw text/JSON from Google AI Studio and returns parsed moments."""
+    try:
+        candidates = parse_studio_json(req.raw_text)
+        return {
+            "valid": True,
+            "count": len(candidates),
+            "candidates": [
+                {
+                    "start_s": c.start_s,
+                    "end_s": c.end_s,
+                    "duration_s": c.duration_s,
+                    "title": c.working_title,
+                    "category": c.category,
+                    "score": c.score,
+                    "why_viral": c.why_viral,
+                }
+                for c in candidates
+            ],
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/batch")

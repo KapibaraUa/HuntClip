@@ -55,6 +55,15 @@
     inputClipMax: document.getElementById('input-clip-max'),
     inputMaxCost: document.getElementById('input-max-cost'),
     btnStartJob: document.getElementById('btn-start-job'),
+    btnStartJobText: document.getElementById('btn-start-job-text'),
+    btnModeApi: document.getElementById('btn-mode-api'),
+    btnModeStudio: document.getElementById('btn-mode-studio'),
+    studioJsonGroup: document.getElementById('studio-json-group'),
+    inputStudioJson: document.getElementById('input-studio-json'),
+    studioFileInput: document.getElementById('studio-file-input'),
+    studioParsedIndicator: document.getElementById('studio-parsed-indicator'),
+    studioParsedCount: document.getElementById('studio-parsed-count'),
+    groupMaxCost: document.getElementById('group-max-cost'),
 
     // Screen 2: Progress
     jobStatusBadge: document.getElementById('job-status-badge'),
@@ -263,6 +272,73 @@
         uploadFile(el.fileInputElement.files[0]);
       }
     });
+
+    setupStudioModeHandlers();
+  }
+
+  // Studio Mode Handlers
+  function setupStudioModeHandlers() {
+    if (!el.btnModeApi || !el.btnModeStudio) return;
+
+    el.btnModeApi.addEventListener('click', () => {
+      el.btnModeApi.classList.add('active');
+      el.btnModeStudio.classList.remove('active');
+      el.studioJsonGroup.style.display = 'none';
+      el.groupMaxCost.style.display = 'block';
+      if (el.btnStartJobText) el.btnStartJobText.textContent = 'Запустить поиск клипов';
+    });
+
+    el.btnModeStudio.addEventListener('click', () => {
+      el.btnModeStudio.classList.add('active');
+      el.btnModeApi.classList.remove('active');
+      el.studioJsonGroup.style.display = 'block';
+      el.groupMaxCost.style.display = 'none';
+      if (el.btnStartJobText) el.btnStartJobText.textContent = 'Нарезать по JSON (0 USD)';
+    });
+
+    async function checkStudioJson() {
+      const raw = el.inputStudioJson ? el.inputStudioJson.value.trim() : '';
+      if (!raw) {
+        if (el.studioParsedIndicator) el.studioParsedIndicator.style.display = 'none';
+        return;
+      }
+      try {
+        const res = await api('/api/jobs/parse-studio-json', {
+          method: 'POST',
+          body: JSON.stringify({ raw_text: raw }),
+        });
+        if (res.valid && el.studioParsedIndicator && el.studioParsedCount) {
+          el.studioParsedIndicator.style.display = 'inline-block';
+          el.studioParsedCount.textContent = res.count;
+        }
+      } catch (err) {
+        if (el.studioParsedIndicator) el.studioParsedIndicator.style.display = 'none';
+      }
+    }
+
+    let parseDebounce = null;
+    if (el.inputStudioJson) {
+      el.inputStudioJson.addEventListener('input', () => {
+        clearTimeout(parseDebounce);
+        parseDebounce = setTimeout(checkStudioJson, 400);
+      });
+    }
+
+    if (el.studioFileInput) {
+      el.studioFileInput.addEventListener('change', () => {
+        if (el.studioFileInput.files.length > 0) {
+          const file = el.studioFileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (el.inputStudioJson) {
+              el.inputStudioJson.value = e.target.result;
+              checkStudioJson();
+            }
+          };
+          reader.readAsText(file);
+        }
+      });
+    }
   }
 
   function uploadFile(file) {
@@ -335,12 +411,19 @@
     const url = el.inputYoutubeUrl.value.trim();
     const sourceId = state.currentSourceId;
 
+    const isStudioMode = el.btnModeStudio && el.btnModeStudio.classList.contains('active');
+    const studioJson = isStudioMode && el.inputStudioJson ? el.inputStudioJson.value.trim() : null;
+
     if (isUrlMode && !url) {
-      showToast('Пожалуйста, укажите ссылку на YouTube', 'error');
+      showToast('Пожалуйста, укажите ссылку на видео или стрим', 'error');
       return;
     }
     if (!isUrlMode && !sourceId) {
       showToast('Пожалуйста, загрузите видеофайл', 'error');
+      return;
+    }
+    if (isStudioMode && !studioJson) {
+      showToast('Пожалуйста, вставьте JSON из Google AI Studio или загрузите файл', 'error');
       return;
     }
 
@@ -350,24 +433,26 @@
       profile_id: el.selectProfile.value,
       clip_min_s: parseFloat(el.inputClipMin.value) || 20.0,
       clip_max_s: parseFloat(el.inputClipMax.value) || 90.0,
-      max_cost_usd: parseFloat(el.inputMaxCost.value) || 5.0,
+      max_cost_usd: isStudioMode ? 0.0 : (parseFloat(el.inputMaxCost.value) || 5.0),
+      studio_json: studioJson,
     };
 
     try {
       el.btnStartJob.disabled = true;
-      el.btnStartJob.textContent = 'Запуск задачи...';
+      el.btnStartJob.textContent = isStudioMode ? 'Импорт и обработка...' : 'Запуск задачи...';
       const job = await api('/api/jobs', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
 
-      showToast('Задача успешно запущена!', 'success');
+      showToast(isStudioMode ? 'JSON импортирован, задача запущена (0 USD)!' : 'Задача успешно запущена!', 'success');
       startJobMonitoring(job.id);
     } catch (e) {
       showToast(`Ошибка запуска: ${e.message}`, 'error');
     } finally {
       el.btnStartJob.disabled = false;
-      el.btnStartJob.innerHTML = '<span class="icon">🚀</span><span>Запустить поиск клипов</span>';
+      const btnTxt = isStudioMode ? 'Нарезать по JSON (0 USD)' : 'Запустить поиск клипов';
+      el.btnStartJob.innerHTML = `<span class="icon">🚀</span><span id="btn-start-job-text">${btnTxt}</span>`;
     }
   });
 

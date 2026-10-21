@@ -13,6 +13,7 @@ from cliphunter.config import Settings
 from cliphunter.export.capcut import CapCutExporter
 from cliphunter.export.manifest import build_clip_manifest, save_job_manifest
 from cliphunter.ingest.probe import probe_source
+from cliphunter.ingest.studio import parse_studio_json
 from cliphunter.ingest.youtube import download_section
 from cliphunter.llm.budget import Budget, estimate_video_cost
 from cliphunter.llm.client import GeminiVideoClient
@@ -133,6 +134,29 @@ class PipelineRunner:
         work_dir.mkdir(parents=True, exist_ok=True)
         out_dir = Path(job.output_dir or str(self.settings.data_dir / "out" / job.id))
         job.output_dir = str(out_dir)
+
+        # Fast path: Studio JSON provided -> bypass LLM scan/refine/judge (Cost: $0.00 USD)
+        if job.params.studio_json:
+            log.info(
+                "Job %s has studio_json provided: bypassing LLM scan/refine/judge (Cost: $0.00 USD)",
+                job.id,
+            )
+            job.cost_usd = 0.0
+
+            if job.stage == StageEnum.S0_INGEST:
+                job.stage = StageEnum.S1_DOWNLOAD_PROXY
+                save_job_state(job, job_dir)
+
+            if job.stage == StageEnum.S1_DOWNLOAD_PROXY:
+                self._step_s1_download_and_proxy(job, work_dir)
+                save_job_state(job, job_dir)
+
+            job.candidates = parse_studio_json(job.params.studio_json)
+            job.stage = StageEnum.S7_CUT
+            save_job_state(job, job_dir)
+
+            self._step_s7_cut(job, out_dir)
+            return
 
         # S0: Cost estimation & confirmation
         est_cost = estimate_video_cost(

@@ -145,9 +145,35 @@
 
           <!-- Configuration & Profile Card -->
           <div class="card glass-card">
-            <h2 class="card-title">2. Настройки и профиль</h2>
+            <h2 class="card-title">2. Настройки и режим</h2>
             
+            <!-- Mode Switcher -->
             <div class="form-group">
+              <label class="form-label">Режим поиска моментов:</label>
+              <div class="input-tabs">
+                <button type="button" class="tab-btn active" id="btn-mode-api">⚡ Gemini API (Поиск ИИ)</button>
+                <button type="button" class="tab-btn" id="btn-mode-studio">📋 Google AI Studio (0 USD)</button>
+              </div>
+            </div>
+
+            <!-- Studio JSON Box (hidden by default) -->
+            <div id="studio-json-group" class="form-group" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <label class="form-label" for="input-studio-json" style="margin-bottom: 0;">Вставьте JSON из Google AI Studio:</label>
+                <span class="badge" id="studio-status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">💰 0 USD (Бесплатно)</span>
+              </div>
+              <textarea id="input-studio-json" class="form-textarea" rows="6" style="font-family: var(--font-mono); font-size: 0.85rem;" placeholder='Вставьте сюда JSON или Markdown-ответ от Gemini из Google AI Studio&#10;Пример: {"clips": [{"start": "01:23", "end": "02:10", "working_title": "Эпичный момент"}]}'></textarea>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <label class="btn btn-secondary btn-sm" for="studio-file-input" style="cursor: pointer;">
+                  <span>📁 Загрузить .json файл</span>
+                </label>
+                <input type="file" id="studio-file-input" accept=".json,text/json,text/plain" style="display: none;">
+                <span id="studio-parsed-indicator" style="font-size: 0.8rem; color: var(--color-success); display: none;">✅ Распознано: <strong id="studio-parsed-count">0</strong> моментов</span>
+              </div>
+              <p class="form-hint">Видео скачается и откроется в ревью с маркерами на таймлайне без платных вызовов Gemini API.</p>
+            </div>
+
+            <div class="form-group" id="group-profile-select">
               <label class="form-label" for="select-profile">Профиль стримера / шаблона:</label>
               <select id="select-profile" class="form-select">
                 <option value="default">Универсальный (default)</option>
@@ -158,7 +184,7 @@
               <p class="form-hint" id="profile-addon-hint">Фокус на эмоциональных пиках и шутках.</p>
             </div>
 
-            <div class="form-row">
+            <div class="form-row" id="group-clip-lengths">
               <div class="form-group col-6">
                 <label class="form-label" for="input-clip-min">Мин. длина клипа (сек):</label>
                 <input type="number" id="input-clip-min" class="form-input" min="5" max="180" value="20">
@@ -169,7 +195,7 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="group-max-cost">
               <label class="form-label" for="input-max-cost">Лимит бюджета на задачу (USD):</label>
               <div class="input-with-symbol">
                 <span class="currency-symbol">$</span>
@@ -181,7 +207,7 @@
             <div class="action-footer">
               <button class="btn btn-primary btn-lg btn-full" id="btn-start-job">
                 <span class="icon">🚀</span>
-                <span>Запустить поиск клипов</span>
+                <span id="btn-start-job-text">Запустить поиск клипов</span>
               </button>
             </div>
           </div>

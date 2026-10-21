@@ -67,6 +67,40 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also generate CapCut Desktop drafts for rendered clips",
     )
+    run_parser.add_argument(
+        "--json",
+        type=Path,
+        default=None,
+        help="Path to JSON file with moments exported from Google AI Studio (bypasses LLM API)",
+    )
+    run_parser.add_argument(
+        "--json-str",
+        type=str,
+        default=None,
+        help="Inline JSON string with moments exported from Google AI Studio",
+    )
+
+    # cliphunter import-studio <target> <json_input>
+    studio_parser = subparsers.add_parser(
+        "import-studio",
+        help="Run pipeline using pre-extracted moments JSON from Google AI Studio (0 USD, no API)",
+    )
+    studio_parser.add_argument("target", help="YouTube URL or path to local video file")
+    studio_parser.add_argument("json_input", help="Path to JSON file or raw JSON string")
+    studio_parser.add_argument(
+        "--profile",
+        type=Path,
+        default=Path("profiles/default.yaml"),
+        help="Path to streamer profile YAML",
+    )
+    studio_parser.add_argument(
+        "--capcut",
+        action="store_true",
+        help="Also generate CapCut Desktop drafts for rendered clips",
+    )
+    studio_parser.add_argument(
+        "--out", type=Path, default=None, help="Custom output directory for clips"
+    )
 
     # cliphunter estimate <target>
     est_parser = subparsers.add_parser(
@@ -251,18 +285,25 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "run":
+        studio_raw: str | None = None
+        if args.json:
+            studio_raw = args.json.read_text(encoding="utf-8")
+        elif args.json_str:
+            studio_raw = args.json_str
+
         params = JobParams(
             clip_min_s=args.min_len or settings.clip_min_s,
             clip_max_s=args.max_len or settings.clip_max_s,
-            max_cost_usd=args.budget or settings.max_cost_usd_per_job,
-            auto_yes=args.yes,
+            max_cost_usd=0.0 if studio_raw else (args.budget or settings.max_cost_usd_per_job),
+            auto_yes=True if studio_raw else args.yes,
             profile_path=args.profile,
             capcut_export=True if args.capcut else None,
+            studio_json=studio_raw,
         )
 
         runner = PipelineRunner(
             settings=settings,
-            confirm_callback=confirm_prompt if not args.yes else None,
+            confirm_callback=confirm_prompt if (not args.yes and not studio_raw) else None,
         )
 
         try:
@@ -275,6 +316,31 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         except Exception as exc:
             print(f"\nPipeline error: {exc}", file=sys.stderr)
+            return 1
+
+    if args.command == "import-studio":
+        raw_val: str = args.json_input
+        json_path = Path(raw_val)
+        studio_raw = json_path.read_text(encoding="utf-8") if json_path.is_file() else raw_val
+
+        params = JobParams(
+            profile_path=args.profile,
+            capcut_export=True if args.capcut else None,
+            studio_json=studio_raw,
+            auto_yes=True,
+            max_cost_usd=0.0,
+        )
+        runner = PipelineRunner(settings=settings)
+        try:
+            job = runner.run(target=args.target, params=params, profile_path=args.profile)
+            print("\nStudio JSON imported & clips rendered successfully!")
+            print(f"Job ID: {job.id}")
+            print(f"Rendered clips: {len(job.rendered_clips)}")
+            print(f"Total spent: ${job.cost_usd:.4f} USD (0 USD Free Mode)")
+            print(f"Clips directory: {job.output_dir}")
+            return 0
+        except Exception as exc:
+            print(f"\nImport error: {exc}", file=sys.stderr)
             return 1
 
     if args.command == "capcut-export":

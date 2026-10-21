@@ -22,6 +22,7 @@ from cliphunter.db.repo import (
 from cliphunter.db.session import Database, get_db_manager
 from cliphunter.export.capcut import CapCutClipSpec, CapCutExporter
 from cliphunter.ingest.probe import probe_source
+from cliphunter.ingest.studio import parse_studio_json
 from cliphunter.ingest.youtube import download_section
 from cliphunter.llm.budget import Budget, BudgetExceeded
 from cliphunter.llm.client import GeminiVideoClient
@@ -201,6 +202,49 @@ class JobTaskManager:
                 proxy_path=job.proxy_path,
             )
             await session.commit()
+
+        # Fast path: Studio JSON provided -> bypass LLM scan/refine/judge (Cost: $0.00 USD)
+        if job.params.studio_json:
+            await self._broadcast_stage(
+                job.id,
+                "studio_import",
+                "Parsing structured JSON from Google AI Studio (0 USD, no LLM calls)...",
+            )
+            parsed_candidates = parse_studio_json(job.params.studio_json)
+            job.candidates = parsed_candidates
+            job.cost_usd = 0.0
+
+            async with self.db.session_factory() as session:
+                await sync_job_candidates(session, job.id, parsed_candidates)
+                await update_job_progress(
+                    session,
+                    job.id,
+                    stage="review",
+                    status="awaiting_review",
+                    cost_usd=0.0,
+                )
+                await session.commit()
+
+            if not self.settings.auto_render and not job.params.auto_yes:
+                log.info(
+                    "Job %s (studio import) ready for review with %d candidates",
+                    job.id,
+                    len(parsed_candidates),
+                )
+                await broadcaster.broadcast(
+                    job.id,
+                    "awaiting_review",
+                    {
+                        "status": "awaiting_review",
+                        "candidates_count": len(parsed_candidates),
+                        "spent_usd": 0.0,
+                    },
+                )
+                return
+
+            # Auto-render if enabled
+            await self.render_job(job.id, selected_candidate_ids=None)
+            return
 
         # S2: Chunk planning
         await self._broadcast_stage(job.id, "s2_chunk_plan", "Planning video chunks...")

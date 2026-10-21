@@ -86,7 +86,7 @@ class Candidate(BaseModel):
     working_title: str
     score: int = Field(ge=1, le=10)
     status: CandidateStatus = CandidateStatus.RAW
-    source_pass: Literal["scan", "refine", "judge", "manual"] = "scan"
+    source_pass: Literal["scan", "refine", "judge", "manual", "studio_import"] = "scan"
     prompt_version: int = 1
     visual_hook: str = ""
     hook_text: str | None = None
@@ -125,6 +125,7 @@ class JobParams(BaseModel):
     profile_path: Path | None = None
     layout: str = "original"
     capcut_export: bool | None = None
+    studio_json: str | None = None
 
 
 class Job(BaseModel):
