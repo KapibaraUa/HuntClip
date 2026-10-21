@@ -2,7 +2,7 @@
 
 Gemini смотрит запись стрима (кадры и звук, без транскрипции), находит лучшие моменты, приложение вырезает их и отдаёт клипы. Полное ТЗ: [docs/plan.md](docs/plan.md).
 
-**Статус:** фаза 5 (Экспорт в CapCut — готова к проверке). См. [docs/PROGRESS.md](docs/PROGRESS.md).
+**Статус:** фаза 6 (Удобства — готова к проверке). См. [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Быстрый старт (Windows, ничего не ставится в систему)
 
@@ -80,6 +80,49 @@ OpenAPI документация доступна по адресу: `http://127
      ```
    - Запусти (или перезапусти) CapCut Desktop — проект появится первым в списке на главном экране с готовым клипом и заголовком на таймлайне.
 
+## Сервисные удобства (Фаза 6)
+
+### 1. Telegram-бот (`aiogram 3`)
+Позволяет стримерам и нарезчикам работать через Telegram прямо со смартфона:
+```powershell
+# Запуск бота (токен берётся из TELEGRAM_TOKEN в .env или флагом):
+uv run cliphunter bot
+uv run cliphunter bot --token "123456:ABC-DEF..."
+```
+- **Возможности:**
+  - Отправь боту ссылку на YouTube/Twitch или загрузи видеофайл прямо в чат.
+  - Бот рассчитает токеноёмкость и покажет оценку стоимости Gemini с кнопками `[🚀 Запустить]` и `[❌ Отмена]`.
+  - В процессе работы статусное сообщение непрерывно обновляется с текущим этапом пайплайна (S0 Ingest → S1 Proxy → S2 Chunk → S3 Scan → S4 Merge → S5 Refine → S6 Judge → S7 Cut).
+  - Готовые `.mp4` клипы (до 50 МБ) бот присылает прямо в чат как видеозаписи.
+  - Ограничение доступа: белый список `TELEGRAM_ALLOWED_IDS` в `.env`.
+  - Команды: `/start`, `/help`, `/jobs`, `/cancel <job_id>`, `/profiles` (выбор активного пресета стримера).
+
+### 2. Запись и прогрессивный анализ идущих стримов (F10)
+Автоматически подключается к live-трансляции YouTube Live, Twitch или Kick, режет поток на куски по `CHUNK_S` и параллельно анализирует их в фоне:
+```powershell
+# Запись и нарезка стрима сегментами по 45 минут:
+uv run cliphunter live "https://www.youtube.com/live/XXXXXXXXXXX" --chunk-s 2700 --profile evelone2004 --yes
+```
+Клипы и кандидаты появляются в БД, SSE-стриме и ревью-интерфейсе прямо по ходу трансляции!
+
+### 3. Пакетная обработка очередей ссылок (`batch`)
+Позволяет поставить в очередь на обработку несколько стримов сразу:
+```powershell
+# Список ссылок аргументами:
+uv run cliphunter batch "https://youtube.com/watch?v=1" "https://twitch.tv/videos/2" --profile gaming_action --yes
+
+# Из текстового файла (одна ссылка на строку, строки с # игнорируются):
+uv run cliphunter batch --file streams.txt --yes --capcut
+```
+Также доступен API эндпоинт `POST /api/jobs/batch`.
+
+### 4. Редактор профилей стримеров в Web UI
+В веб-интерфейсе по кнопке **«⚙️ Профили»** доступно модальное окно управления пресетами:
+- Редактирование координат вебкамеры (`facecam_rect`: X, Y, W, H от 0 до 1) и геймплея.
+- Настройка мин/макс хронометража клипов и языка.
+- Промпт-надстройка для подсказок Gemini (характерный стиль стрима, шутки, реакции).
+- Создание новых профилей и мгновенное сохранение через `PUT /api/profiles/{name}`.
+
 ## Калибровка (фаза 0)
 
 1. Скопируй `golden/calibration.example.yaml` в `calibration/calibration.yaml`: ссылка на публичный стрим, окно 10 минут и эталонные моменты.
@@ -113,12 +156,13 @@ uv run python scripts/eval.py
 
 См. раздел 5 плана. Реализованы модули:
 - `api/` (FastAPI роутеры: uploads, jobs, candidates, clips, profiles, media range streaming, SSE broadcaster)
+- `bot/` (Telegram-бот aiogram 3: ссылки, файлы, подтверждения, стриминг прогресса, доставка клипов)
 - `db/` (SQLAlchemy 2.0 async ORM models, session manager, CRUD repo, Alembic миграции)
 - `worker/` (Асинхронный фоновый менеджер задач, шлюз awaiting_review, рендерер)
-- `web/` (Single Page App: dark-theme интерфейс нарезчика, 4 экрана, плеер, скраббер, модальные окна)
-- `cli.py` (CLI интерфейс: run, estimate, serve)
+- `web/` (Single Page App: dark-theme интерфейс нарезчика, 4 экрана, плеер, скраббер, редактор профилей, модальные окна)
+- `cli.py` (CLI интерфейс: run, estimate, capcut-export, serve, bot, live, batch)
 - `models.py` (Domain models, Pydantic v2)
-- `ingest/` (`probe.py`, `files.py`, `youtube.py`)
+- `ingest/` (`probe.py`, `files.py`, `youtube.py`, `live.py`)
 - `pipeline/` (`stages.py`, `chunking.py`, `merge.py`, `validate.py`, `timecodes.py`)
 - `llm/` (`client.py`, `scan.py`, `refine.py`, `judge.py`, `cache.py`, `budget.py`, `schemas.py`, `prompts.py`)
 - `video/` (`ffmpeg.py`, `cut.py`, `snap.py`, `layouts.py`, `render.py`, `template.py`, `subtitles.py`)

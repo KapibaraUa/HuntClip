@@ -118,6 +118,71 @@ def build_parser() -> argparse.ArgumentParser:
         "--reload", action="store_true", help="Enable auto-reload on code change"
     )
 
+    # cliphunter bot [--token TOKEN]
+    bot_parser = subparsers.add_parser("bot", help="Launch Telegram bot for clip generation")
+    bot_parser.add_argument(
+        "--token", type=str, default=None, help="Telegram bot token (overrides TELEGRAM_TOKEN env)"
+    )
+
+    # cliphunter live <url> [--chunk-s CHUNK_S]
+    live_parser = subparsers.add_parser(
+        "live", help="Record and progressively process a live stream (YouTube/Twitch)"
+    )
+    live_parser.add_argument("url", help="Live stream URL (YouTube Live, Twitch, etc.)")
+    live_parser.add_argument(
+        "--chunk-s",
+        type=int,
+        default=2700,
+        help="Segment duration in seconds (default: 2700s / 45m)",
+    )
+    live_parser.add_argument(
+        "--profile",
+        type=str,
+        default="default",
+        help="Profile name for candidate extraction (default: default)",
+    )
+    live_parser.add_argument(
+        "--yes", "-y", action="store_true", help="Automatically render clips without review gate"
+    )
+    live_parser.add_argument(
+        "--max-chunks", type=int, default=None, help="Limit number of chunks to record"
+    )
+
+    # cliphunter batch [targets...] [--file FILE]
+    batch_parser = subparsers.add_parser(
+        "batch", help="Batch process a list of stream URLs or files"
+    )
+    batch_parser.add_argument(
+        "targets",
+        nargs="*",
+        default=[],
+        help="List of URLs or local file paths",
+    )
+    batch_parser.add_argument(
+        "--file",
+        "-f",
+        type=Path,
+        default=None,
+        help="Path to text file containing one URL/path per line",
+    )
+    batch_parser.add_argument(
+        "--profile",
+        type=Path,
+        default=Path("profiles/default.yaml"),
+        help="Path to streamer profile YAML",
+    )
+    batch_parser.add_argument(
+        "--budget", type=float, default=None, help="Budget limit in USD per job"
+    )
+    batch_parser.add_argument(
+        "--yes", "-y", action="store_true", help="Automatically confirm all jobs"
+    )
+    batch_parser.add_argument(
+        "--capcut",
+        action="store_true",
+        help="Also export CapCut Desktop drafts",
+    )
+
     return parser
 
 
@@ -226,6 +291,84 @@ def main(argv: list[str] | None = None) -> int:
             reload=args.reload,
         )
         return 0
+
+    if args.command == "bot":
+        import asyncio
+
+        from cliphunter.bot.telegram import run_bot
+
+        print("Starting ClipHunter Telegram Bot...")
+        try:
+            asyncio.run(run_bot(token=args.token))
+        except (KeyboardInterrupt, SystemExit):
+            print("\nBot stopped.")
+        return 0
+
+    if args.command == "live":
+        import asyncio
+
+        from cliphunter.ingest.live import LiveStreamSession
+
+        print(f"Starting live stream recording session for: {args.url}")
+        print(f"Segment duration: {args.chunk_s}s, Profile: {args.profile}")
+        session = LiveStreamSession(
+            url=args.url,
+            profile_id=args.profile,
+            chunk_s=args.chunk_s,
+            auto_yes=args.yes,
+            max_chunks=args.max_chunks,
+        )
+        try:
+            created = asyncio.run(session.run())
+            print(f"\nLive session ended. Created {len(created)} segment job(s):")
+            for jid in created:
+                print(f" - {jid}")
+        except (KeyboardInterrupt, SystemExit):
+            print("\nLive session stopped.")
+        return 0
+
+    if args.command == "batch":
+        targets: list[str] = list(args.targets)
+        if args.file:
+            if not args.file.exists():
+                print(f"Batch file not found: {args.file}", file=sys.stderr)
+                return 1
+            lines = args.file.read_text(encoding="utf-8").splitlines()
+            for line in lines:
+                clean = line.strip()
+                if clean and not clean.startswith("#"):
+                    targets.append(clean)
+
+        if not targets:
+            print("No targets provided for batch processing.", file=sys.stderr)
+            return 1
+
+        print(f"Starting batch queue processing of {len(targets)} video(s)...")
+        params = JobParams(
+            max_cost_usd=args.budget or settings.max_cost_usd_per_job,
+            auto_yes=args.yes,
+            profile_path=args.profile,
+            capcut_export=True if args.capcut else None,
+        )
+        runner = PipelineRunner(
+            settings=settings,
+            confirm_callback=confirm_prompt if not args.yes else None,
+        )
+
+        success_count = 0
+        for idx, target in enumerate(targets, start=1):
+            print(f"\n[{idx}/{len(targets)}] Processing target: {target}")
+            try:
+                job = runner.run(target=target, params=params, profile_path=args.profile)
+                print(
+                    f"✓ Job {job.id} completed: {len(job.rendered_clips)} clips, cost ${job.cost_usd:.3f}"
+                )
+                success_count += 1
+            except Exception as exc:
+                print(f"✗ Failed to process {target}: {exc}", file=sys.stderr)
+
+        print(f"\nBatch processing finished: {success_count}/{len(targets)} jobs succeeded.")
+        return 0 if success_count == len(targets) else 1
 
     return 0
 

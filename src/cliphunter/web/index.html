@@ -54,6 +54,10 @@
           <span class="icon">📊</span>
           <span id="header-cost-pill">$0.00</span>
         </button>
+        <button class="btn btn-ghost btn-sm" id="btn-open-profiles" title="Редактор профилей стримеров">
+          <span class="icon">⚙️</span>
+          <span>Профили</span>
+        </button>
         <button class="btn btn-ghost btn-sm" id="btn-recent-jobs" title="История задач">
           <span class="icon">🕒</span>
           <span>Задачи</span>
@@ -78,17 +82,17 @@
             <h2 class="card-title">1. Источник стрима</h2>
             
             <div class="input-tabs">
-              <button class="tab-btn active" id="tab-btn-url">YouTube Ссылка</button>
+              <button class="tab-btn active" id="tab-btn-url">YouTube / Twitch Ссылка</button>
               <button class="tab-btn" id="tab-btn-file">Локальный файл</button>
             </div>
 
             <div id="input-url-group" class="tab-content active">
-              <label class="form-label" for="input-youtube-url">Ссылка на YouTube (стрим, VOD или запись):</label>
+              <label class="form-label" for="input-youtube-url">Ссылка на видео/стрим (YouTube, Twitch VOD, трансляция):</label>
               <div class="input-with-action">
-                <input type="url" id="input-youtube-url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+                <input type="url" id="input-youtube-url" class="form-input" placeholder="https://www.youtube.com/watch?v=... или https://twitch.tv/..." autocomplete="off">
                 <button type="button" class="btn btn-secondary" id="btn-estimate-cost">Оценить</button>
               </div>
-              <p class="form-hint">Поддерживаются стандартные ссылки watch, live-трансляции и youtu.be</p>
+              <p class="form-hint">Поддерживаются YouTube (watch, live, Shorts), Twitch VOD и клипы, Kick и прямые веб-ссылки через yt-dlp</p>
             </div>
 
             <div id="input-file-group" class="tab-content">
@@ -511,6 +515,75 @@
               </thead>
               <tbody id="usage-calls-tbody"></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Streamer Profiles Editor -->
+    <div class="modal-backdrop" id="modal-profiles" style="display: none;">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <h3>Редактор профилей стримеров</h3>
+          <button class="modal-close-btn" id="btn-close-profiles-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="profiles-container">
+            <div class="profiles-sidebar">
+              <div class="profiles-sidebar-header">
+                <strong>Пресеты</strong>
+                <button type="button" class="btn btn-sm btn-primary" id="btn-new-profile">+ Новый</button>
+              </div>
+              <ul class="profiles-list" id="profiles-sidebar-list">
+                <!-- Dynamically populated -->
+              </ul>
+            </div>
+            <div class="profile-editor-form">
+              <form id="profile-form">
+                <div class="form-group">
+                  <label class="form-label" for="prof-name">Имя профиля:</label>
+                  <input type="text" id="prof-name" class="form-input" required placeholder="Например: evelone2004">
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label class="form-label" for="prof-language">Язык стрима:</label>
+                    <input type="text" id="prof-language" class="form-input" value="ru">
+                  </div>
+                  <div class="form-group col-6">
+                    <label class="form-label" for="prof-game">Категория / Игра:</label>
+                    <input type="text" id="prof-game" class="form-input" placeholder="Just Chatting / CS2">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label class="form-label" for="prof-min-len">Мин. длина клипа (с):</label>
+                    <input type="number" id="prof-min-len" class="form-input" value="20" min="5" max="180">
+                  </div>
+                  <div class="form-group col-6">
+                    <label class="form-label" for="prof-max-len">Макс. длина клипа (с):</label>
+                    <input type="number" id="prof-max-len" class="form-input" value="90" min="10" max="300">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Область вебкамеры (Facecam Rect: X, Y, W, H от 0.0 до 1.0):</label>
+                  <div class="rect-inputs">
+                    <input type="number" step="0.01" min="0" max="1" id="prof-facecam-x" class="form-input" placeholder="X (0.75)">
+                    <input type="number" step="0.01" min="0" max="1" id="prof-facecam-y" class="form-input" placeholder="Y (0.05)">
+                    <input type="number" step="0.01" min="0" max="1" id="prof-facecam-w" class="form-input" placeholder="W (0.25)">
+                    <input type="number" step="0.01" min="0" max="1" id="prof-facecam-h" class="form-input" placeholder="H (0.30)">
+                  </div>
+                  <p class="form-hint">Оставьте пустым, если вебкамера отсутствует или макет не вертикальный стек (9:16)</p>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="prof-prompt-addon">Промпт-надстройка для Gemini (характерный стиль стрима):</label>
+                  <textarea id="prof-prompt-addon" class="form-textarea" rows="3" placeholder="Особенности стримов, фишки, эмоции, ключевые слова..."></textarea>
+                </div>
+                <div class="form-actions mt-3" style="display: flex; gap: 1rem; align-items: center;">
+                  <button type="submit" class="btn btn-primary" id="btn-save-profile">Сохранить профиль</button>
+                  <span id="profile-save-status" style="font-size: 0.85rem; color: var(--accent);"></span>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

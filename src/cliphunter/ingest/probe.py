@@ -11,10 +11,20 @@ from cliphunter.ingest.youtube import fetch_info
 from cliphunter.models import Source, SourceKind
 
 _YT_REGEX = re.compile(r"^(https?://)?(www\.|m\.)?(youtube\.com|youtu\.be)/.+$")
+_TWITCH_REGEX = re.compile(r"^(https?://)?(www\.)?(twitch\.tv|clips\.twitch\.tv)/.+$")
 
 
 def is_youtube_url(url: str) -> bool:
     return bool(_YT_REGEX.match(url.strip()))
+
+
+def is_twitch_url(url: str) -> bool:
+    return bool(_TWITCH_REGEX.match(url.strip()))
+
+
+def is_live_stream(info: dict[str, object]) -> bool:
+    """Checks whether the probed stream is currently broadcasting live."""
+    return bool(info.get("is_live")) or info.get("live_status") == "is_live"
 
 
 def probe_source(target: str) -> Source:
@@ -26,9 +36,13 @@ def probe_source(target: str) -> Source:
 
     if is_youtube_url(target_clean):
         info = fetch_info(target_clean)
+        is_live = is_live_stream(info)
         dur = info.get("duration")
         if dur is None or not isinstance(dur, (int, float)):
-            raise ValueError(f"Could not determine duration for YouTube URL: {target_clean}")
+            if is_live:
+                dur = 0.0
+            else:
+                raise ValueError(f"Could not determine duration for YouTube URL: {target_clean}")
         raw_id = str(info.get("id") or hashlib.sha256(target_clean.encode()).hexdigest()[:12])
         return Source(
             id=f"yt_{raw_id}",
@@ -40,18 +54,25 @@ def probe_source(target: str) -> Source:
             sha256=None,
         )
 
-    # Other URL (e.g., Twitch, direct link)
+    # Twitch or other web video (VOD, clip, stream)
     info = fetch_info(target_clean)
+    is_live = is_live_stream(info)
     dur = info.get("duration")
     if dur is None or not isinstance(dur, (int, float)):
-        raise ValueError(f"Could not determine duration for URL: {target_clean}")
+        if is_live:
+            dur = 0.0
+        else:
+            raise ValueError(f"Could not determine duration for URL: {target_clean}")
     raw_id = str(info.get("id") or hashlib.sha256(target_clean.encode()).hexdigest()[:12])
+    prefix = "twitch" if is_twitch_url(target_clean) else "url"
     return Source(
-        id=f"url_{raw_id}",
+        id=f"{prefix}_{raw_id}",
         kind=SourceKind.OTHER_URL,
         url=target_clean,
         duration_s=float(dur),
-        title=str(info.get("title") or "Web Video"),
-        channel=str(info.get("uploader") or "Unknown"),
+        title=str(
+            info.get("title") or ("Twitch Stream" if is_twitch_url(target_clean) else "Web Video")
+        ),
+        channel=str(info.get("uploader") or info.get("channel") or "Unknown"),
         sha256=None,
     )

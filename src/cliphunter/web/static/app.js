@@ -119,6 +119,25 @@
     btnCloseJobsModal: document.getElementById('btn-close-jobs-modal'),
     recentJobsList: document.getElementById('recent-jobs-list'),
 
+    // Profiles Modal
+    btnOpenProfiles: document.getElementById('btn-open-profiles'),
+    modalProfiles: document.getElementById('modal-profiles'),
+    btnCloseProfilesModal: document.getElementById('btn-close-profiles-modal'),
+    profilesSidebarList: document.getElementById('profiles-sidebar-list'),
+    btnNewProfile: document.getElementById('btn-new-profile'),
+    profileForm: document.getElementById('profile-form'),
+    profName: document.getElementById('prof-name'),
+    profLanguage: document.getElementById('prof-language'),
+    profGame: document.getElementById('prof-game'),
+    profMinLen: document.getElementById('prof-min-len'),
+    profMaxLen: document.getElementById('prof-max-len'),
+    profFacecamX: document.getElementById('prof-facecam-x'),
+    profFacecamY: document.getElementById('prof-facecam-y'),
+    profFacecamW: document.getElementById('prof-facecam-w'),
+    profFacecamH: document.getElementById('prof-facecam-h'),
+    profPromptAddon: document.getElementById('prof-prompt-addon'),
+    profileSaveStatus: document.getElementById('profile-save-status'),
+
     toastContainer: document.getElementById('toast-container'),
   };
 
@@ -1050,6 +1069,138 @@
   };
 
   el.btnCloseJobsModal.addEventListener('click', () => (el.modalRecentJobs.style.display = 'none'));
+
+  // PROFILES EDITOR MODAL
+  if (el.btnOpenProfiles) {
+    el.btnOpenProfiles.addEventListener('click', () => {
+      renderProfilesSidebar();
+      el.modalProfiles.style.display = 'flex';
+    });
+  }
+
+  if (el.btnCloseProfilesModal) {
+    el.btnCloseProfilesModal.addEventListener('click', () => {
+      el.modalProfiles.style.display = 'none';
+    });
+  }
+
+  function renderProfilesSidebar(activeName = null) {
+    const list = state.profiles || [];
+    const targetName = activeName || (list.length > 0 ? list[0].name : null);
+
+    el.profilesSidebarList.innerHTML = list
+      .map(
+        (p) => `
+      <li class="profiles-list-item ${p.name === targetName ? 'active' : ''}" data-name="${p.name}">
+        <strong>${escapeHtml(p.name)}</strong>
+        <span style="font-size: 0.75rem; color: #94a3b8;">${escapeHtml(p.game || 'Общий')} (${p.language})</span>
+      </li>
+    `
+      )
+      .join('');
+
+    el.profilesSidebarList.querySelectorAll('.profiles-list-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        selectProfileInEditor(item.dataset.name);
+      });
+    });
+
+    if (targetName) {
+      selectProfileInEditor(targetName);
+    }
+  }
+
+  function selectProfileInEditor(name) {
+    el.profilesSidebarList.querySelectorAll('.profiles-list-item').forEach((item) => {
+      item.classList.toggle('active', item.dataset.name === name);
+    });
+
+    const p = (state.profiles || []).find((x) => x.name === name);
+    if (!p) return;
+
+    el.profName.value = p.name;
+    el.profName.readOnly = p.name === 'default';
+    el.profLanguage.value = p.language || 'ru';
+    el.profGame.value = p.game || '';
+    el.profMinLen.value = p.clip_min_s || 20;
+    el.profMaxLen.value = p.clip_max_s || 90;
+
+    if (p.facecam_rect) {
+      el.profFacecamX.value = p.facecam_rect.x ?? '';
+      el.profFacecamY.value = p.facecam_rect.y ?? '';
+      el.profFacecamW.value = p.facecam_rect.w ?? '';
+      el.profFacecamH.value = p.facecam_rect.h ?? '';
+    } else {
+      el.profFacecamX.value = '';
+      el.profFacecamY.value = '';
+      el.profFacecamW.value = '';
+      el.profFacecamH.value = '';
+    }
+    el.profPromptAddon.value = p.prompt_addon || '';
+    el.profileSaveStatus.textContent = '';
+  }
+
+  if (el.btnNewProfile) {
+    el.btnNewProfile.addEventListener('click', () => {
+      el.profilesSidebarList
+        .querySelectorAll('.profiles-list-item')
+        .forEach((item) => item.classList.remove('active'));
+      el.profName.value = '';
+      el.profName.readOnly = false;
+      el.profLanguage.value = 'ru';
+      el.profGame.value = '';
+      el.profMinLen.value = 20;
+      el.profMaxLen.value = 90;
+      el.profFacecamX.value = '';
+      el.profFacecamY.value = '';
+      el.profFacecamW.value = '';
+      el.profFacecamH.value = '';
+      el.profPromptAddon.value = '';
+      el.profileSaveStatus.textContent = 'Новый профиль: заполните поля и нажмите "Сохранить"';
+      el.profName.focus();
+    });
+  }
+
+  if (el.profileForm) {
+    el.profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = el.profName.value.trim();
+      if (!name) return;
+
+      const fcX = parseFloat(el.profFacecamX.value);
+      const fcY = parseFloat(el.profFacecamY.value);
+      const fcW = parseFloat(el.profFacecamW.value);
+      const fcH = parseFloat(el.profFacecamH.value);
+      const hasFacecam = !isNaN(fcX) && !isNaN(fcY) && !isNaN(fcW) && !isNaN(fcH);
+
+      const payload = {
+        name: name,
+        language: el.profLanguage.value.trim() || 'ru',
+        game: el.profGame.value.trim(),
+        clip_min_s: parseFloat(el.profMinLen.value) || 20,
+        clip_max_s: parseFloat(el.profMaxLen.value) || 90,
+        prompt_addon: el.profPromptAddon.value.trim(),
+        facecam_rect: hasFacecam ? { x: fcX, y: fcY, w: fcW, h: fcH } : null,
+        gameplay_rect: hasFacecam ? { x: 0, y: 0, w: 1, h: 1 } : null,
+      };
+
+      try {
+        el.profileSaveStatus.textContent = 'Сохранение...';
+        await api(`/api/profiles/${encodeURIComponent(name)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        el.profileSaveStatus.textContent = '✓ Сохранено!';
+        showToast(`Профиль "${name}" успешно сохранён`, 'success');
+        await loadProfiles();
+        renderProfilesSidebar(name);
+      } catch (err) {
+        el.profileSaveStatus.textContent = `Ошибка: ${err.message}`;
+        showToast(`Не удалось сохранить профиль: ${err.message}`, 'error');
+      }
+    });
+  }
 
   // Nav Tabs Click
   el.navTabs.forEach((tab) => {

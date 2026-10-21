@@ -40,6 +40,15 @@ class CreateJobRequest(BaseModel):
     auto_yes: bool = False
 
 
+class BatchJobRequest(BaseModel):
+    urls: list[str] = []
+    profile_id: str = "default"
+    clip_min_s: float = 20.0
+    clip_max_s: float = 90.0
+    max_cost_usd: float = 5.0
+    auto_yes: bool = False
+
+
 class EstimateRequest(BaseModel):
     target: str
 
@@ -128,6 +137,56 @@ async def create_new_job(
     task_manager.start_job(job_id)
 
     return _job_to_dict(loaded_job)
+
+
+@router.post("/batch")
+async def create_batch_jobs(
+    req: BatchJobRequest,
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Creates multiple stream highlight jobs in batch and starts them in background."""
+    if not req.urls:
+        raise HTTPException(status_code=400, detail="urls list cannot be empty")
+
+    batch_id = f"batch_{uuid.uuid4().hex[:8]}"
+    created_jobs: list[dict[str, Any]] = []
+
+    for url in req.urls:
+        url_clean = url.strip()
+        if not url_clean:
+            continue
+        try:
+            source_meta = probe_source(url_clean)
+            await upsert_source(session, source_meta)
+
+            job_id = f"job_{uuid.uuid4().hex[:10]}"
+            job = Job(
+                id=job_id,
+                source=source_meta,
+                profile=Profile(name=req.profile_id),
+                params=JobParams(
+                    clip_min_s=req.clip_min_s,
+                    clip_max_s=req.clip_max_s,
+                    max_cost_usd=req.max_cost_usd,
+                    auto_yes=req.auto_yes,
+                ),
+            )
+            await create_job(session, job)
+            await session.commit()
+
+            loaded_job = await get_job(session, job_id)
+            assert loaded_job is not None
+            task_manager.start_job(job_id)
+            created_jobs.append(_job_to_dict(loaded_job))
+        except Exception as exc:
+            created_jobs.append({"url": url_clean, "error": str(exc), "status": "failed"})
+
+    return {
+        "batch_id": batch_id,
+        "total": len(req.urls),
+        "created_count": len([j for j in created_jobs if "id" in j]),
+        "jobs": created_jobs,
+    }
 
 
 @router.get("")
