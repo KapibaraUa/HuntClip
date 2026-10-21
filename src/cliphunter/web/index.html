@@ -47,6 +47,10 @@
           <span>Результаты</span>
           <span class="badge-count" id="results-count-badge">0</span>
         </button>
+        <button class="nav-tab" data-screen="screen-settings" id="nav-settings-tab">
+          <span class="tab-icon">🛠️</span>
+          <span>Настройки</span>
+        </button>
       </nav>
 
       <div class="nav-actions">
@@ -393,6 +397,120 @@
           <!-- Dynamically populated clip cards -->
           <div class="empty-state">
             <p>Клипы ещё не отрендерены.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: SETTINGS (Plan Section 11, item 5) -->
+      <section id="screen-settings" class="view-screen">
+        <div class="screen-header">
+          <h1 class="screen-title">Настройки системы и обслуживание</h1>
+          <p class="screen-subtitle">Управление моделью Gemini, параметрами разрешения, бюджетом, профилями стримеров и резервным копированием</p>
+        </div>
+
+        <div class="two-col-grid">
+          <div class="card glass-card">
+            <h2 class="card-title">1. Модель ИИ, параметры и бюджет</h2>
+            <form id="system-settings-form">
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-gemini-model">Модель Gemini:</label>
+                  <input type="text" id="sys-gemini-model" class="form-input" value="gemini-3.8-flash">
+                </div>
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-thinking-level">Уровень мышления (Thinking):</label>
+                  <select id="sys-thinking-level" class="form-select">
+                    <option value="minimal">minimal</option>
+                    <option value="low">low</option>
+                    <option value="medium" selected>medium</option>
+                    <option value="high">high</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-res-scan">Разрешение Pass 1 (Scan):</label>
+                  <select id="sys-res-scan" class="form-select">
+                    <option value="low" selected>low (~100 tok/s)</option>
+                    <option value="medium">medium</option>
+                    <option value="high">high (~300 tok/s)</option>
+                  </select>
+                </div>
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-res-refine">Разрешение Pass 2 (Refine):</label>
+                  <select id="sys-res-refine" class="form-select">
+                    <option value="low">low</option>
+                    <option value="medium">medium</option>
+                    <option value="high" selected>high (~300 tok/s)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-max-cost">Лимит бюджета на задачу ($ USD):</label>
+                  <input type="number" step="0.5" min="0.5" max="100" id="sys-max-cost" class="form-input" value="5.0">
+                </div>
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-confirm-above">Подтверждать дороже ($ USD):</label>
+                  <input type="number" step="0.5" min="0.1" max="50" id="sys-confirm-above" class="form-input" value="1.0">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-retention-days">Хранение временных данных (дней):</label>
+                  <input type="number" min="1" max="365" id="sys-retention-days" class="form-input" value="14">
+                </div>
+                <div class="form-group col-6" style="display: flex; flex-direction: column; gap: 0.4rem; justify-content: center;">
+                  <label class="checkbox-label"><input type="checkbox" id="sys-auto-render"> Авто-рендер без паузы ревью</label>
+                  <label class="checkbox-label"><input type="checkbox" id="sys-capcut-export"> Авто-экспорт в CapCut</label>
+                  <label class="checkbox-label"><input type="checkbox" id="sys-use-nvenc"> Аппаратный кодек NVIDIA NVENC</label>
+                </div>
+              </div>
+
+              <div class="form-actions mt-3">
+                <button type="submit" class="btn btn-primary" id="btn-save-sys-settings">Сохранить параметры</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card glass-card">
+            <h2 class="card-title">2. Профили, хранилище и резервные копии</h2>
+            <p class="form-hint" style="margin-bottom: 1rem;">Настройте области вебкамеры и геймплея для разных стримеров или выполните обслуживание базы данных и диска.</p>
+
+            <div style="margin-bottom: 1.25rem;">
+              <button type="button" class="btn btn-secondary" id="btn-open-profiles-from-settings">
+                ⚙️ Открыть редактор профилей стримеров
+              </button>
+            </div>
+
+            <div class="estimate-panel" id="settings-storage-panel" style="display: block; margin-bottom: 1.25rem;">
+              <div class="estimate-header">
+                <span class="estimate-icon">💾</span>
+                <strong>Использование диска и бэкапы</strong>
+              </div>
+              <div class="estimate-grid" id="settings-storage-grid">
+                <div class="est-item">
+                  <span class="est-label">Всего файлов:</span>
+                  <span class="est-val" id="storage-total-files">—</span>
+                </div>
+                <div class="est-item">
+                  <span class="est-label">Занято на диске:</span>
+                  <span class="est-val" id="storage-total-mb">— МБ</span>
+                </div>
+                <div class="est-item highlight">
+                  <span class="est-label">Архивов БД:</span>
+                  <span class="est-val" id="storage-backups-count">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary" id="btn-trigger-backup">📦 Создать бэкап БД</button>
+              <button type="button" class="btn btn-ghost" id="btn-trigger-cleanup">🧹 Очистить устаревшие файлы</button>
+            </div>
           </div>
         </div>
       </section>

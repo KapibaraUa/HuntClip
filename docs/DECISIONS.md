@@ -142,4 +142,25 @@
 61. **Документация известных ограничений (`docs/LIMITATIONS.md`):**
     - Сформирован подробный перечень ограничений по квотам Gemini Interactions API, TTL файлов в Files API (~48 ч), закрытым VOD (Sub-only/Members-only), привязке схемы черновиков к CapCut Desktop `9.6.0.4097`, лимиту 50 МБ в Telegram Bot API и особенностям SQLite vs PostgreSQL.
 
+## Фаза 8 (Финальная сквозная интеграция, экран настроек, управление бюджетом и E2E-тесты)
+
+62. **Определение объёма Фазы 8:**
+    - В разделе 14 `docs/plan.md` перечислены фазы 0–7. Фаза 8 оформлена как финальное сквозное закрытие всех оставшихся межсекционных деталей спецификации: 5-й экран Web UI «Настройки» (раздел 11, п. 5), пауза/возобновление по бюджету `paused_budget` (раздел 8), воронка отсева кандидатов в метриках задачи (раздел 12), выделенный аудиомодуль `src/cliphunter/video/audio.py` (разделы 5 и 9) и сквозной E2E тест-сьют `tests/e2e/test_e2e_pipeline.py` (разделы 5 и 13).
+63. **Экран 5 «Настройки» в Web UI и системный API (`GET/PUT /api/system/settings`):**
+    - В навигацию веб-интерфейса добавлен 5-й экран **«🛠️ Настройки»** (`#screen-settings`).
+    - Эндпоинты `GET /api/system/settings` и `PUT /api/system/settings` позволяют на лету читать и обновлять рабочие настройки приложения (модель Gemini, `thinking_level`, разрешения `media_res_scan` и `media_res_refine`, лимиты `max_cost_usd_per_job` и `confirm_above_usd`, `retention_days`, флаги `auto_render`, `capcut_export`, `use_nvenc`).
+    - На этом же экране выведена сводка использования диска по категориям (`sources`, `proxies`, `jobs`, `backups`) и кнопки быстрого запуска онлайн-бэкапа БД и очистки устаревших файлов.
+64. **Пауза при исчерпании бюджета (`paused_budget`) и возобновление (`POST /api/jobs/{job_id}/budget`):**
+    - При перехвате `BudgetExceeded` во время выполнения задачи фоновый воркер `JobTaskManager` переводит задачу в статус `paused_budget` (вместо фатального `failed`), сохраняя прогресс и отправляя SSE-уведомление.
+    - Эндпоинт `POST /api/jobs/{job_id}/budget` (`{"max_cost_usd": float, "resume": bool}`) поднимает потолок бюджета задачи и автоматически перезапускает воркер с последнего сохранённого чекпоинта.
+65. **Воронка кандидатов (`funnel`) в `/api/jobs/{job_id}/usage`:**
+    - Эндпоинт `GET /api/jobs/{job_id}/usage` дополнен полем `funnel` (`total`, `raw`, `merged`, `refined`, `accepted`, `dropped`, `rendered`), агрегирующим распределение кандидатов по этапам многопроходного отбора (раздел 12 плана).
+66. **Выделенный модуль аудио-фильтров (`src/cliphunter/video/audio.py`):**
+    - Вынесены и покрыты тестами генераторы цепочек аудио-фильтров FFmpeg: `build_loudnorm_filter(i=-16.0, tp=-1.5, lra=11.0)`, `build_afade_filter(duration_s, fade_s=0.1)` и композитный `build_audio_filter()`.
+67. **Сквозной E2E-контур (`tests/e2e/test_e2e_pipeline.py`):**
+    - Тест `test_e2e_full_pipeline_with_capcut_and_manifest` генерирует синтетический видеоролик (H.264 + AAC), проходит все этапы `S0 -> S9`, проверяет выходной `.mp4` через `ffprobe`, валидирует `manifest.json` и проверяет сгенерированный черновик CapCut Desktop `9.6.0.4097`.
+    - Тест `test_e2e_settings_budget_resume_and_usage_funnel` проверяет API настроек, воронку кандидатов и возобновление задачи из статуса `paused_budget`.
+    - Тест `test_e2e_live_gemini_api` запускается только при `RUN_LIVE=1` и наличии `GEMINI_API_KEY`, предотвращая случайные платные вызовы в обычных прогонах `pytest`.
+
+
 

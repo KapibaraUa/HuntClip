@@ -53,6 +53,11 @@ class EstimateRequest(BaseModel):
     target: str
 
 
+class UpdateBudgetRequest(BaseModel):
+    max_cost_usd: float
+    resume: bool = True
+
+
 def _job_to_dict(j: JobORM) -> dict[str, Any]:
     has_source = "source" in j.__dict__ and j.source is not None
     has_candidates = "candidates" in j.__dict__ and j.candidates is not None
@@ -245,6 +250,43 @@ async def retry_job_stage(
     await session.commit()
     task_manager.start_job(job_id)
     return {"job_id": job_id, "resumed": True}
+
+
+@router.post("/{job_id}/budget")
+async def update_job_budget(
+    job_id: str,
+    req: UpdateBudgetRequest,
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Updates the maximum budget limit for a job (e.g. when paused_budget) and optionally resumes it."""
+    if req.max_cost_usd <= 0:
+        raise HTTPException(status_code=400, detail="max_cost_usd must be positive")
+
+    job = await get_job(session, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    params = dict(job.params or {})
+    params["max_cost_usd"] = req.max_cost_usd
+    job.params = params
+    job.budget_usd = req.max_cost_usd
+
+    resumed = False
+    if req.resume and job.status in ("paused_budget", "failed", "cancelled"):
+        job.status = "running"
+        job.error = None
+        resumed = True
+
+    await session.commit()
+    if resumed:
+        task_manager.start_job(job_id)
+
+    return {
+        "job_id": job_id,
+        "budget_usd": job.budget_usd,
+        "status": job.status,
+        "resumed": resumed,
+    }
 
 
 @router.post("/estimate")

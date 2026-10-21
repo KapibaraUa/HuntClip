@@ -201,6 +201,18 @@ async def get_job_usage_stats(
         for call in api_calls
     ]
 
+    cands = job.candidates or []
+    clips_list = job.clips or []
+    funnel = {
+        "total": len(cands),
+        "raw": sum(1 for c in cands if c.status == "raw"),
+        "merged": sum(1 for c in cands if c.status == "merged"),
+        "refined": sum(1 for c in cands if c.status == "refined"),
+        "accepted": sum(1 for c in cands if c.status in ("accepted", "rendered")),
+        "dropped": sum(1 for c in cands if c.status in ("dropped", "rejected")),
+        "rendered": len(clips_list),
+    }
+
     return {
         "job_id": job_id,
         "total_calls": len(api_calls),
@@ -212,6 +224,7 @@ async def get_job_usage_stats(
         "budget_usd": job.budget_usd,
         "cache_hits": cache_hits,
         "cache_hit_rate": round(cache_hit_rate, 2),
+        "funnel": funnel,
         "stages": stages_breakdown,
         "calls": calls_log,
     }

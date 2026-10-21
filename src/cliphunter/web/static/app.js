@@ -1202,11 +1202,127 @@
     });
   }
 
+  // SCREEN 5: SYSTEM SETTINGS & MAINTENANCE
+  async function loadSystemSettingsScreen() {
+    try {
+      const [sys, storage] = await Promise.all([
+        api('/api/system/settings'),
+        api('/api/system/storage'),
+      ]);
+      const mEl = document.getElementById('sys-gemini-model');
+      if (mEl) mEl.value = sys.gemini_model || 'gemini-3.8-flash';
+      const tEl = document.getElementById('sys-thinking-level');
+      if (tEl) tEl.value = sys.thinking_level || 'medium';
+      const rsEl = document.getElementById('sys-res-scan');
+      if (rsEl) rsEl.value = sys.media_res_scan || 'low';
+      const rrEl = document.getElementById('sys-res-refine');
+      if (rrEl) rrEl.value = sys.media_res_refine || 'high';
+      const mcEl = document.getElementById('sys-max-cost');
+      if (mcEl) mcEl.value = sys.max_cost_usd_per_job ?? 5.0;
+      const caEl = document.getElementById('sys-confirm-above');
+      if (caEl) caEl.value = sys.confirm_above_usd ?? 1.0;
+      const rdEl = document.getElementById('sys-retention-days');
+      if (rdEl) rdEl.value = sys.retention_days ?? 14;
+      const arEl = document.getElementById('sys-auto-render');
+      if (arEl) arEl.checked = !!sys.auto_render;
+      const ccEl = document.getElementById('sys-capcut-export');
+      if (ccEl) ccEl.checked = !!sys.capcut_export;
+      const nvEl = document.getElementById('sys-use-nvenc');
+      if (nvEl) nvEl.checked = !!sys.use_nvenc;
+
+      const fEl = document.getElementById('storage-total-files');
+      if (fEl) fEl.textContent = `${storage.total_files || 0}`;
+      const mbEl = document.getElementById('storage-total-mb');
+      if (mbEl) mbEl.textContent = `${storage.total_mb || 0} МБ`;
+      const bkEl = document.getElementById('storage-backups-count');
+      if (bkEl) bkEl.textContent = `${storage.backups_count || 0}`;
+    } catch (err) {
+      console.warn('Could not load system settings:', err);
+    }
+  }
+
+  const sysSettingsForm = document.getElementById('system-settings-form');
+  if (sysSettingsForm) {
+    sysSettingsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        gemini_model: document.getElementById('sys-gemini-model').value.trim(),
+        thinking_level: document.getElementById('sys-thinking-level').value,
+        media_res_scan: document.getElementById('sys-res-scan').value,
+        media_res_refine: document.getElementById('sys-res-refine').value,
+        max_cost_usd_per_job: parseFloat(document.getElementById('sys-max-cost').value) || 5.0,
+        confirm_above_usd: parseFloat(document.getElementById('sys-confirm-above').value) || 1.0,
+        retention_days: parseInt(document.getElementById('sys-retention-days').value, 10) || 14,
+        auto_render: document.getElementById('sys-auto-render').checked,
+        capcut_export: document.getElementById('sys-capcut-export').checked,
+        use_nvenc: document.getElementById('sys-use-nvenc').checked,
+      };
+      try {
+        await api('/api/system/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        showToast('Системные параметры сохранены', 'success');
+      } catch (err) {
+        showToast(`Ошибка сохранения параметров: ${err.message}`, 'error');
+      }
+    });
+  }
+
+  const btnOpenProfSettings = document.getElementById('btn-open-profiles-from-settings');
+  if (btnOpenProfSettings) {
+    btnOpenProfSettings.addEventListener('click', () => {
+      renderProfilesSidebar();
+      el.modalProfiles.style.display = 'flex';
+    });
+  }
+
+  const btnTriggerBackup = document.getElementById('btn-trigger-backup');
+  if (btnTriggerBackup) {
+    btnTriggerBackup.addEventListener('click', async () => {
+      try {
+        const res = await api('/api/system/backup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keep_last: 7 }),
+        });
+        showToast(`Создан бэкап БД: ${res.name}`, 'success');
+        loadSystemSettingsScreen();
+      } catch (err) {
+        showToast(`Ошибка бэкапа: ${err.message}`, 'error');
+      }
+    });
+  }
+
+  const btnTriggerCleanup = document.getElementById('btn-trigger-cleanup');
+  if (btnTriggerCleanup) {
+    btnTriggerCleanup.addEventListener('click', async () => {
+      try {
+        const res = await api('/api/system/cleanup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dry_run: false }),
+        });
+        showToast(
+          `Очистка завершена: удалено файлов ${res.deleted_files_count} (${res.freed_mb} МБ)`,
+          'success'
+        );
+        loadSystemSettingsScreen();
+      } catch (err) {
+        showToast(`Ошибка очистки: ${err.message}`, 'error');
+      }
+    });
+  }
+
   // Nav Tabs Click
   el.navTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       if (!tab.disabled) {
         switchScreen(tab.dataset.screen);
+        if (tab.dataset.screen === 'screen-settings') {
+          loadSystemSettingsScreen();
+        }
       }
     });
   });

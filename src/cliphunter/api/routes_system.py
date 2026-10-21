@@ -7,9 +7,10 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from cliphunter.config import Settings
+from cliphunter.config import MediaRes, Settings, ThinkingLevel
 from cliphunter.maintenance.backup import backup_database, list_backups
 from cliphunter.maintenance.cleanup import cleanup_expired_data, get_storage_stats
+from cliphunter.worker.tasks import task_manager
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
@@ -23,6 +24,59 @@ class CleanupRequest(BaseModel):
 
 class BackupRequest(BaseModel):
     keep_last: int = 7
+
+
+class SystemSettingsPayload(BaseModel):
+    gemini_model: str | None = None
+    thinking_level: ThinkingLevel | None = None
+    media_res_scan: MediaRes | None = None
+    media_res_refine: MediaRes | None = None
+    refine_fps: float | None = None
+    max_cost_usd_per_job: float | None = None
+    confirm_above_usd: float | None = None
+    auto_render: bool | None = None
+    subtitles: bool | None = None
+    capcut_export: bool | None = None
+    use_nvenc: bool | None = None
+    retention_days: int | None = None
+
+
+def _settings_to_dict(s: Settings) -> dict[str, Any]:
+    return {
+        "gemini_model": s.gemini_model,
+        "thinking_level": s.thinking_level,
+        "media_res_scan": s.media_res_scan,
+        "media_res_refine": s.media_res_refine,
+        "refine_fps": s.refine_fps,
+        "chunk_s": s.chunk_s,
+        "overlap_s": s.overlap_s,
+        "clip_min_s": s.clip_min_s,
+        "clip_max_s": s.clip_max_s,
+        "max_cost_usd_per_job": s.max_cost_usd_per_job,
+        "confirm_above_usd": s.confirm_above_usd,
+        "auto_render": s.auto_render,
+        "subtitles": s.subtitles,
+        "capcut_export": s.capcut_export,
+        "use_nvenc": s.use_nvenc,
+        "retention_days": s.retention_days,
+        "gemini_api_key_configured": bool(s.gemini_api_key.get_secret_value().strip()),
+        "telegram_token_configured": bool(s.telegram_token.get_secret_value().strip()),
+    }
+
+
+@router.get("/settings")
+async def get_system_settings() -> dict[str, Any]:
+    """Returns current model, budget, rendering, and storage settings (with secrets masked)."""
+    return _settings_to_dict(task_manager.settings)
+
+
+@router.put("/settings")
+async def update_system_settings(payload: SystemSettingsPayload) -> dict[str, Any]:
+    """Updates runtime settings for model parameters, budget limits, and rendering flags."""
+    updates = payload.model_dump(exclude_none=True)
+    new_settings = task_manager.settings.model_copy(update=updates)
+    task_manager.settings = new_settings
+    return _settings_to_dict(new_settings)
 
 
 @router.get("/storage")

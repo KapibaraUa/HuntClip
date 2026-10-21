@@ -23,7 +23,7 @@ from cliphunter.db.session import Database, get_db_manager
 from cliphunter.export.capcut import CapCutClipSpec, CapCutExporter
 from cliphunter.ingest.probe import probe_source
 from cliphunter.ingest.youtube import download_section
-from cliphunter.llm.budget import Budget
+from cliphunter.llm.budget import Budget, BudgetExceeded
 from cliphunter.llm.client import GeminiVideoClient
 from cliphunter.llm.judge import judge_candidates
 from cliphunter.llm.refine import refine_candidates
@@ -91,6 +91,14 @@ class JobTaskManager:
                 await update_job_progress(session, job_id, status="cancelled")
                 await session.commit()
             await broadcaster.broadcast(job_id, "cancelled", {"status": "cancelled"})
+        except BudgetExceeded as exc:
+            log.warning("Job %s paused due to budget limit: %s", job_id, exc)
+            async with self.db.session_factory() as session:
+                await update_job_progress(session, job_id, status="paused_budget", error=str(exc))
+                await session.commit()
+            await broadcaster.broadcast(
+                job_id, "paused_budget", {"status": "paused_budget", "error": str(exc)}
+            )
         except Exception as exc:
             log.exception("Job %s failed: %s", job_id, exc)
             async with self.db.session_factory() as session:

@@ -10,6 +10,7 @@
 | 5. Экспорт в CapCut | **ждёт проверки** (`export/capcut.py`, CapCut 9.6.0.4097, CLI/API/UI) |
 | 6. Удобства | **ждёт проверки** (Telegram-бот aiogram 3, live-запись стримов, Twitch, batch, редактор профилей) |
 | 7. Полировка | **ждёт проверки** (бэкап БД, ротация данных и логов по RETENTION_DAYS, скрипт установки, LIMITATIONS.md) |
+| 8. Сквозная интеграция и E2E | **ждёт проверки** (Экран 5 «Настройки», `paused_budget` и `POST /api/jobs/{id}/budget`, воронка кандидатов `funnel`, `video/audio.py`, E2E-тесты `tests/e2e/`) |
 
 Отчёты по фазам:
 - Фаза 0: [reports/phase-0.md](../reports/phase-0.md)
@@ -20,3 +21,4 @@
 - Фаза 5: [reports/phase-5.md](../reports/phase-5.md)
 - Фаза 6: [reports/phase-6.md](../reports/phase-6.md)
 - Фаза 7: [reports/phase-7.md](../reports/phase-7.md)
+- Фаза 8: [reports/phase-8.md](../reports/phase-8.md)

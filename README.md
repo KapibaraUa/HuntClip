@@ -2,7 +2,7 @@
 
 Gemini смотрит запись стрима (кадры и звук, без транскрипции), находит лучшие моменты, приложение вырезает их и отдаёт клипы. Полное ТЗ: [docs/plan.md](docs/plan.md).
 
-**Статус:** фаза 7 (Полировка — готова к проверке; все фазы 0–7 реализованы). См. [docs/PROGRESS.md](docs/PROGRESS.md) и [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
+**Статус:** фаза 8 (Финальная сквозная интеграция и E2E — готова к проверке; все фазы 0–8 реализованы на 100%). См. [docs/PROGRESS.md](docs/PROGRESS.md) и [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
 ## Быстрый старт (Windows / Linux, ничего не ставится в систему)
 
