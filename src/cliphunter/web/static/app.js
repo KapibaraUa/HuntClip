@@ -1776,6 +1776,24 @@
           if (el.btnTriggerRender) el.btnTriggerRender.click();
         },
       },
+      {
+        id: 'theme-light',
+        title: 'Включить светлую тему оформления (CapCut Light Studio)',
+        badge: 'Тема',
+        icon: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>',
+        run: () => {
+          if (window.setTheme) window.setTheme('light');
+        },
+      },
+      {
+        id: 'theme-dark',
+        title: 'Включить тёмную тему оформления (CapCut Obsidian)',
+        badge: 'Тема',
+        icon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+        run: () => {
+          if (window.setTheme) window.setTheme('dark');
+        },
+      },
     ];
 
     let activeIdx = 0;
@@ -1879,7 +1897,60 @@
     });
   }
 
+  // Theme Controller (CapCut Obsidian <-> CapCut Light Studio)
+  function setupThemeController() {
+    const btnToggle = document.getElementById('btn-toggle-theme');
+    const sunIcon = document.getElementById('theme-icon-sun');
+    const moonIcon = document.getElementById('theme-icon-moon');
+    const themeLabel = document.getElementById('theme-btn-label');
+    const sysThemeSelect = document.getElementById('sys-theme-select');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.body.classList.remove('dark-theme', 'light-theme');
+      document.body.classList.add(theme + '-theme');
+      localStorage.setItem('cliphunter_theme', theme);
+
+      if (theme === 'light') {
+        if (sunIcon) sunIcon.style.display = 'none';
+        if (moonIcon) moonIcon.style.display = 'block';
+        if (themeLabel) themeLabel.textContent = 'Тёмная';
+      } else {
+        if (sunIcon) sunIcon.style.display = 'block';
+        if (moonIcon) moonIcon.style.display = 'none';
+        if (themeLabel) themeLabel.textContent = 'Светлая';
+      }
+
+      if (sysThemeSelect) {
+        sysThemeSelect.value = theme;
+      }
+    }
+
+    const initialTheme = localStorage.getItem('cliphunter_theme') || 'dark';
+    applyTheme(initialTheme);
+
+    if (btnToggle) {
+      btnToggle.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        showToast(next === 'light' ? 'Включена светлая тема (CapCut Light Studio)' : 'Включена тёмная тема (CapCut Obsidian)', 'info');
+      });
+    }
+
+    if (sysThemeSelect) {
+      sysThemeSelect.addEventListener('change', () => {
+        applyTheme(sysThemeSelect.value);
+        showToast(sysThemeSelect.value === 'light' ? 'Включена светлая тема' : 'Включена тёмная тема', 'info');
+      });
+    }
+
+    // Expose for external / console testing
+    window.setTheme = applyTheme;
+  }
+
   // Initialization
+  setupThemeController();
   loadProfiles();
   setupUploadHandlers();
   setupDesktopHandlers();

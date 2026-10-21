@@ -10,6 +10,15 @@
   <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
   <link rel="alternate icon" href="/static/favicon.ico">
   <link rel="stylesheet" href="/static/style.css">
+  <script>
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem('cliphunter_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.documentElement.classList.add(savedTheme + '-theme');
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body class="dark-theme">
   <div id="app" class="app-layout">
@@ -57,6 +66,15 @@
       </nav>
 
       <div class="nav-actions">
+        <button class="btn btn-ghost btn-sm btn-theme-toggle" id="btn-toggle-theme" title="Переключить тему оформления (Светлая / Тёмная)" aria-label="Переключить тему">
+          <svg class="btn-icon theme-icon-sun" id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="btn-icon theme-icon-moon" id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <span id="theme-btn-label">Тема</span>
+        </button>
         <button class="btn btn-ghost btn-sm command-palette-trigger" id="btn-open-command-palette" title="Командная палитра (Ctrl+K)">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span class="kbd-pill">Ctrl K</span>
@@ -640,6 +658,17 @@
                   <label class="checkbox-label"><input type="checkbox" id="sys-auto-render"> Авто-рендер без паузы ревью</label>
                   <label class="checkbox-label"><input type="checkbox" id="sys-capcut-export"> Авто-экспорт в CapCut</label>
                   <label class="checkbox-label"><input type="checkbox" id="sys-use-nvenc"> Аппаратный кодек NVIDIA NVENC</label>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label class="form-label" for="sys-theme-select">Тема оформления интерфейса:</label>
+                  <select id="sys-theme-select" class="form-select">
+                    <option value="dark">Тёмная (CapCut Obsidian)</option>
+                    <option value="light">Светлая (CapCut Light Studio)</option>
+                  </select>
+                  <p class="form-hint">Быстрое переключение также доступно кнопкой в шапке сайта и через Ctrl+K.</p>
                 </div>
               </div>
 
