@@ -15,7 +15,7 @@
     <header class="navbar">
       <div class="nav-brand">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
             <circle cx="17" cy="7" r="3"></circle>
           </svg>
@@ -23,48 +23,51 @@
         <div class="brand-text">
           <span class="brand-name">ClipHunter</span>
           <span class="brand-badge">AI Studio</span>
-          <span class="badge" id="badge-desktop-mode" style="display: none; background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4); font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: 0.4rem;">🖥️ Desktop</span>
+          <span class="badge badge-desktop" id="badge-desktop-mode" style="display: none;">
+            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Desktop</span>
+          </span>
         </div>
       </div>
 
       <!-- Navigation tabs -->
       <nav class="nav-tabs">
         <button class="nav-tab active" data-screen="screen-new-job">
-          <span class="tab-icon">➕</span>
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span>Новая задача</span>
         </button>
         <button class="nav-tab" data-screen="screen-progress" id="nav-progress-tab" disabled>
-          <span class="tab-icon">⚡</span>
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <span>Ход задачи</span>
           <span class="badge-dot" id="progress-indicator"></span>
         </button>
         <button class="nav-tab" data-screen="screen-review" id="nav-review-tab" disabled>
-          <span class="tab-icon">🎬</span>
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
           <span>Ревью клипов</span>
           <span class="badge-count" id="review-count-badge">0</span>
         </button>
         <button class="nav-tab" data-screen="screen-results" id="nav-results-tab" disabled>
-          <span class="tab-icon">✨</span>
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           <span>Результаты</span>
           <span class="badge-count" id="results-count-badge">0</span>
         </button>
         <button class="nav-tab" data-screen="screen-settings" id="nav-settings-tab">
-          <span class="tab-icon">🛠️</span>
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
           <span>Настройки</span>
         </button>
       </nav>
 
       <div class="nav-actions">
         <button class="btn btn-secondary btn-sm" id="btn-show-usage" title="Статистика токенов и расходов" style="display: none;">
-          <span class="icon">📊</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           <span id="header-cost-pill">$0.00</span>
         </button>
         <button class="btn btn-ghost btn-sm" id="btn-open-profiles" title="Редактор профилей стримеров">
-          <span class="icon">⚙️</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span>Профили</span>
         </button>
         <button class="btn btn-ghost btn-sm" id="btn-recent-jobs" title="История задач">
-          <span class="icon">🕒</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           <span>Задачи</span>
         </button>
       </div>
@@ -76,26 +79,47 @@
       <!-- SCREEN 1: NEW JOB -->
       <section id="screen-new-job" class="view-screen active">
         <div class="screen-header">
-          <div class="hero-badge">Gemini Multimodal Native Analysis</div>
+          <div class="hero-badge">
+            <svg class="hero-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Gemini Multimodal Native Analysis</span>
+          </div>
           <h1 class="screen-title">Найти вирусные клипы в стриме</h1>
-          <p class="screen-subtitle">ИИ смотрит видеоряд и слушает звук целиком, выявляя самые эмоциональные и яркие моменты без транскриптов.</p>
+          <p class="screen-subtitle">ИИ анализирует видеоряд и аудиодорожку целиком, находя яркие и эмоциональные моменты для монтажа Shorts, Reels и TikTok.</p>
         </div>
 
-        <div class="two-col-grid">
-          <!-- Input Source Card -->
-          <div class="card glass-card">
-            <h2 class="card-title">1. Источник стрима</h2>
+        <!-- Bento Grid: Screen 1 -->
+        <div class="bento-grid bento-grid-screen1">
+          <!-- Bento Tile 1: Source Input -->
+          <div class="bento-card bento-tile-source">
+            <div class="bento-card-header">
+              <div class="bento-card-title-group">
+                <span class="bento-step-num">01</span>
+                <div>
+                  <h2 class="card-title">Источник стрима</h2>
+                  <p class="bento-card-desc">Укажите прямую веб-ссылку или загрузите локальный файл</p>
+                </div>
+              </div>
+            </div>
             
             <div class="input-tabs">
-              <button class="tab-btn active" id="tab-btn-url">YouTube / Twitch Ссылка</button>
-              <button class="tab-btn" id="tab-btn-file">Локальный файл</button>
+              <button class="tab-btn active" id="tab-btn-url">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span>YouTube / Twitch Ссылка</span>
+              </button>
+              <button class="tab-btn" id="tab-btn-file">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>Локальный видеофайл</span>
+              </button>
             </div>
 
             <div id="input-url-group" class="tab-content active">
               <label class="form-label" for="input-youtube-url">Ссылка на видео/стрим (YouTube, Twitch VOD, трансляция):</label>
               <div class="input-with-action">
                 <input type="url" id="input-youtube-url" class="form-input" placeholder="https://www.youtube.com/watch?v=... или https://twitch.tv/..." autocomplete="off">
-                <button type="button" class="btn btn-secondary" id="btn-estimate-cost">Оценить</button>
+                <button type="button" class="btn btn-secondary" id="btn-estimate-cost">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span>Оценить</span>
+                </button>
               </div>
               <p class="form-hint">Поддерживаются YouTube (watch, live, Shorts), Twitch VOD и клипы, Kick и прямые веб-ссылки через yt-dlp</p>
             </div>
@@ -103,7 +127,9 @@
             <div id="input-file-group" class="tab-content">
               <label class="form-label">Перетащите видеофайл или выберите с диска:</label>
               <div class="dropzone" id="file-dropzone">
-                <div class="dropzone-icon">📁</div>
+                <div class="dropzone-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                </div>
                 <div class="dropzone-text">
                   <strong>Перетащите файл сюда</strong> или <span class="dropzone-browse">выберите файл</span>
                 </div>
@@ -124,56 +150,73 @@
             <!-- Estimate Preview Panel -->
             <div id="estimate-panel" class="estimate-panel" style="display: none;">
               <div class="estimate-header">
-                <span class="icon">⚡</span>
+                <svg class="estimate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 <span class="estimate-title" id="est-title">Стрим</span>
               </div>
               <div class="estimate-meta-row">
                 <div class="meta-item">
-                  <span class="meta-label">Длительность:</span>
-                  <span class="meta-value" id="est-duration">--</span>
+                  <span class="meta-label">Длительность</span>
+                  <span class="meta-value mono-val" id="est-duration">--</span>
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Канал:</span>
+                  <span class="meta-label">Канал</span>
                   <span class="meta-value" id="est-channel">--</span>
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Оценка затрат:</span>
-                  <span class="meta-value text-accent" id="est-cost">~$0.00</span>
+                  <span class="meta-label">Оценка затрат</span>
+                  <span class="meta-value text-accent mono-val" id="est-cost">~$0.00</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Configuration & Profile Card -->
-          <div class="card glass-card">
-            <h2 class="card-title">2. Настройки и режим</h2>
-            
-            <!-- Mode Switcher -->
+          <!-- Bento Tile 2: Mode & Studio JSON -->
+          <div class="bento-card bento-tile-mode">
+            <div class="bento-card-header">
+              <div class="bento-card-title-group">
+                <span class="bento-step-num">02</span>
+                <div>
+                  <h2 class="card-title">Режим обработки</h2>
+                  <p class="bento-card-desc">Прямой анализ Gemini API или бесплатный импорт из Google AI Studio</p>
+                </div>
+              </div>
+            </div>
+
             <div class="form-group">
-              <label class="form-label">Режим поиска моментов:</label>
               <div class="input-tabs">
-                <button type="button" class="tab-btn active" id="btn-mode-api">⚡ Gemini API (Поиск ИИ)</button>
-                <button type="button" class="tab-btn" id="btn-mode-studio">📋 Google AI Studio (0 USD)</button>
+                <button type="button" class="tab-btn active" id="btn-mode-api">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span>Gemini API (Авто-поиск)</span>
+                </button>
+                <button type="button" class="tab-btn" id="btn-mode-studio">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                  <span>Google AI Studio (0 USD)</span>
+                </button>
               </div>
             </div>
 
             <!-- Studio JSON Box (hidden by default) -->
-            <div id="studio-json-group" class="form-group" style="display: none;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div id="studio-json-group" class="form-group studio-json-container" style="display: none;">
+              <div class="studio-header-line">
                 <label class="form-label" for="input-studio-json" style="margin-bottom: 0;">Вставьте JSON из Google AI Studio:</label>
-                <span class="badge" id="studio-status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">💰 0 USD (Бесплатно)</span>
+                <span class="badge badge-success" id="studio-status-badge">0 USD (Бесплатно)</span>
               </div>
-              <textarea id="input-studio-json" class="form-textarea" rows="6" style="font-family: var(--font-mono); font-size: 0.85rem;" placeholder='Вставьте сюда JSON или Markdown-ответ от Gemini из Google AI Studio&#10;Пример: {"clips": [{"start": "01:23", "end": "02:10", "working_title": "Эпичный момент"}]}'></textarea>
-              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <textarea id="input-studio-json" class="form-textarea mono-textarea" rows="6" placeholder='Вставьте сюда JSON или Markdown-ответ от Gemini из Google AI Studio&#10;Пример: {"clips": [{"start": "01:23", "end": "02:10", "working_title": "Эпичный момент"}]}'></textarea>
+              <div class="studio-actions-row">
                 <label class="btn btn-secondary btn-sm" for="studio-file-input" style="cursor: pointer;">
-                  <span>📁 Загрузить .json файл</span>
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <span>Загрузить .json файл</span>
                 </label>
                 <input type="file" id="studio-file-input" accept=".json,text/json,text/plain" style="display: none;">
-                <span id="studio-parsed-indicator" style="font-size: 0.8rem; color: var(--color-success); display: none;">✅ Распознано: <strong id="studio-parsed-count">0</strong> моментов</span>
+                <span id="studio-parsed-indicator" class="studio-indicator" style="display: none;">
+                  <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Распознано: <strong id="studio-parsed-count">0</strong> моментов</span>
+                </span>
               </div>
-              <p class="form-hint">Видео скачается и откроется в ревью с маркерами на таймлайне без платных вызовов Gemini API.</p>
+              <p class="form-hint">Видео скачивается и открывается в ревью с маркерами на таймлайне без платных вызовов Gemini API.</p>
             </div>
 
+            <!-- Configuration fields for API mode -->
             <div class="form-group" id="group-profile-select">
               <label class="form-label" for="select-profile">Профиль стримера / шаблона:</label>
               <select id="select-profile" class="form-select">
@@ -187,11 +230,11 @@
 
             <div class="form-row" id="group-clip-lengths">
               <div class="form-group col-6">
-                <label class="form-label" for="input-clip-min">Мин. длина клипа (сек):</label>
+                <label class="form-label" for="input-clip-min">Мин. длина (сек):</label>
                 <input type="number" id="input-clip-min" class="form-input" min="5" max="180" value="20">
               </div>
               <div class="form-group col-6">
-                <label class="form-label" for="input-clip-max">Макс. длина клипа (сек):</label>
+                <label class="form-label" for="input-clip-max">Макс. длина (сек):</label>
                 <input type="number" id="input-clip-max" class="form-input" min="15" max="300" value="90">
               </div>
             </div>
@@ -207,7 +250,7 @@
 
             <div class="action-footer">
               <button class="btn btn-primary btn-lg btn-full" id="btn-start-job">
-                <span class="icon">🚀</span>
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 <span id="btn-start-job-text">Запустить поиск клипов</span>
               </button>
             </div>
@@ -217,92 +260,104 @@
 
       <!-- SCREEN 2: PROGRESS -->
       <section id="screen-progress" class="view-screen">
-        <div class="progress-hero-card card glass-card">
-          <div class="progress-top-bar">
-            <div>
-              <span class="badge" id="job-status-badge">running</span>
-              <h2 class="progress-stream-title" id="progress-job-title">Обработка стрима...</h2>
-              <span class="mono-id" id="progress-job-id">job-id</span>
-            </div>
-            <div class="progress-stats-capsules">
-              <div class="stat-capsule">
-                <span class="stat-lbl">Текущий расход</span>
-                <span class="stat-val" id="progress-cost-val">$0.000</span>
+        <div class="bento-grid bento-grid-screen2">
+          <!-- Bento Header Tile -->
+          <div class="bento-card bento-tile-full">
+            <div class="progress-top-bar">
+              <div class="progress-identity">
+                <div class="progress-badge-row">
+                  <span class="badge" id="job-status-badge">running</span>
+                  <span class="mono-id" id="progress-job-id">job-id</span>
+                </div>
+                <h2 class="progress-stream-title" id="progress-job-title">Обработка стрима...</h2>
               </div>
-              <div class="stat-capsule">
-                <span class="stat-lbl">Кандидатов</span>
-                <span class="stat-val" id="progress-cand-count">0</span>
+              <div class="progress-stats-capsules">
+                <div class="stat-capsule">
+                  <span class="stat-lbl">Расход API</span>
+                  <span class="stat-val mono-val" id="progress-cost-val">$0.000</span>
+                </div>
+                <div class="stat-capsule">
+                  <span class="stat-lbl">Кандидатов</span>
+                  <span class="stat-val mono-val" id="progress-cand-count">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeline Stepper -->
+            <div class="stepper-timeline" id="stepper-timeline">
+              <div class="step-node" data-stage="s0_ingest">
+                <div class="node-circle">0</div>
+                <div class="node-label">Ingest</div>
+              </div>
+              <div class="step-connector"></div>
+              <div class="step-node" data-stage="s1_download_proxy">
+                <div class="node-circle">1</div>
+                <div class="node-label">Proxy</div>
+              </div>
+              <div class="step-connector"></div>
+              <div class="step-node" data-stage="s2_chunk_plan">
+                <div class="node-circle">2</div>
+                <div class="node-label">Plan</div>
+              </div>
+              <div class="step-connector"></div>
+              <div class="step-node" data-stage="s3_scan">
+                <div class="node-circle">3</div>
+                <div class="node-label">Scan S3</div>
+              </div>
+              <div class="step-connector"></div>
+              <div class="step-node" data-stage="s4_merge">
+                <div class="node-circle">4</div>
+                <div class="node-label">Merge</div>
+              </div>
+              <div class="step-connector"></div>
+              <div class="step-node" data-stage="s5_refine">
+                <div class="node-circle">5</div>
+                <div class="node-label">Refine S5</div>
+              </div>
+              <div class="step-connector"></div>
+              <div class="step-node" data-stage="s6_judge">
+                <div class="node-circle">6</div>
+                <div class="node-label">Judge S6</div>
+              </div>
+              <div class="step-connector"></div>
+              <div class="step-node" data-stage="s7_cut">
+                <div class="node-circle">7</div>
+                <div class="node-label">Cut/Render</div>
               </div>
             </div>
           </div>
 
-          <!-- Timeline Stepper -->
-          <div class="stepper-timeline" id="stepper-timeline">
-            <div class="step-node" data-stage="s0_ingest">
-              <div class="node-circle">0</div>
-              <div class="node-label">Ingest</div>
-            </div>
-            <div class="step-connector"></div>
-            <div class="step-node" data-stage="s1_download_proxy">
-              <div class="node-circle">1</div>
-              <div class="node-label">Proxy</div>
-            </div>
-            <div class="step-connector"></div>
-            <div class="step-node" data-stage="s2_chunk_plan">
-              <div class="node-circle">2</div>
-              <div class="node-label">Plan</div>
-            </div>
-            <div class="step-connector"></div>
-            <div class="step-node" data-stage="s3_scan">
-              <div class="node-circle">3</div>
-              <div class="node-label">Scan S3</div>
-            </div>
-            <div class="step-connector"></div>
-            <div class="step-node" data-stage="s4_merge">
-              <div class="node-circle">4</div>
-              <div class="node-label">Merge</div>
-            </div>
-            <div class="step-connector"></div>
-            <div class="step-node" data-stage="s5_refine">
-              <div class="node-circle">5</div>
-              <div class="node-label">Refine S5</div>
-            </div>
-            <div class="step-connector"></div>
-            <div class="step-node" data-stage="s6_judge">
-              <div class="node-circle">6</div>
-              <div class="node-label">Judge S6</div>
-            </div>
-            <div class="step-connector"></div>
-            <div class="step-node" data-stage="s7_cut">
-              <div class="node-circle">7</div>
-              <div class="node-label">Cut/Render</div>
+          <!-- Bento Tile: Active Stage Details -->
+          <div class="bento-card bento-tile-half">
+            <div class="active-stage-card">
+              <div class="stage-spinner" id="stage-spinner"></div>
+              <div class="stage-text-block">
+                <h3 id="current-stage-name">Подготовка к анализу...</h3>
+                <p id="current-stage-desc">Инициализация рабочих файлов и проверка метаданных видео.</p>
+              </div>
+              <div class="stage-controls">
+                <button class="btn btn-danger btn-sm" id="btn-cancel-job">Отменить</button>
+                <button class="btn btn-secondary btn-sm" id="btn-retry-job" style="display: none;">Повторить</button>
+                <button class="btn btn-primary btn-sm" id="btn-go-to-review" style="display: none;">
+                  <span>Перейти к ревью</span>
+                  <svg class="btn-icon-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Active stage details -->
-          <div class="active-stage-card">
-            <div class="stage-spinner" id="stage-spinner"></div>
-            <div class="stage-text-block">
-              <h3 id="current-stage-name">Подготовка к анализу...</h3>
-              <p id="current-stage-desc">Инициализация рабочих файлов и проверка метаданных видео.</p>
+          <!-- Bento Tile: Realtime SSE Console -->
+          <div class="bento-card bento-tile-half console-bento">
+            <div class="console-header">
+              <div class="console-header-left">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                <span>Журнал событий реального времени (SSE)</span>
+              </div>
+              <span class="console-live-tag">LIVE</span>
             </div>
-            <div class="stage-controls">
-              <button class="btn btn-danger btn-sm" id="btn-cancel-job">Отменить</button>
-              <button class="btn btn-secondary btn-sm" id="btn-retry-job" style="display: none;">Повторить</button>
-              <button class="btn btn-accent btn-sm" id="btn-go-to-review" style="display: none;">Перейти к ревью →</button>
+            <div class="console-body" id="console-stream-log">
+              <div class="log-line text-muted">[system] Ожидание подключения потока событий...</div>
             </div>
-          </div>
-        </div>
-
-        <!-- Realtime Events Console -->
-        <div class="card glass-card console-card">
-          <div class="console-header">
-            <span class="icon">📟</span>
-            <span>Журнал событий реального времени (SSE)</span>
-            <span class="console-live-tag">LIVE</span>
-          </div>
-          <div class="console-body" id="console-stream-log">
-            <div class="log-line text-muted">[system] Ожидание подключения потока событий...</div>
           </div>
         </div>
       </section>
@@ -312,7 +367,7 @@
         <div class="review-layout">
           <!-- Video Player Column -->
           <div class="player-column">
-            <div class="card glass-card player-card">
+            <div class="bento-card player-bento-card">
               <div class="video-wrapper">
                 <video id="review-video-player" controls preload="metadata" playsinline>
                   <source id="video-source" src="" type="video/mp4">
@@ -346,17 +401,19 @@
                 </div>
                 <div>
                   <button class="btn btn-secondary btn-sm" id="btn-add-moment-modal">
-                    <span>➕ Добавить момент</span>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Добавить момент</span>
                   </button>
                 </div>
               </div>
             </div>
 
             <!-- Render Toolbar Card -->
-            <div class="card glass-card render-toolbar">
+            <div class="bento-card render-toolbar-bento">
               <div class="render-info">
-                <div>
-                  <span class="render-count-highlight" id="accepted-clips-count">0</span> клипов выбрано к монтажу
+                <div class="render-clips-summary">
+                  <span class="render-count-highlight" id="accepted-clips-count">0</span>
+                  <span>клипов выбрано к монтажу</span>
                 </div>
                 <div class="render-layout-picker">
                   <label for="select-render-layout" class="layout-label">Формат кадра:</label>
@@ -367,21 +424,24 @@
                     <option value="facecam_top_game_bottom_9x16">9:16 Фейскам + Геймплей (Split)</option>
                   </select>
                 </div>
-                <label class="layout-label" style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                <label class="layout-label checkbox-label" style="display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer;">
                   <input type="checkbox" id="checkbox-capcut-export">
                   <span>Черновик CapCut</span>
                 </label>
               </div>
               <button class="btn btn-success btn-lg" id="btn-trigger-render">
-                <span>⚡ Запустить рендер клипов</span>
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Запустить рендер клипов</span>
               </button>
             </div>
           </div>
 
           <!-- Candidate List Column -->
           <div class="candidates-column">
-            <div class="candidates-header">
-              <h3>Найденные моменты (<span id="candidates-total-badge">0</span>)</h3>
+            <div class="candidates-header bento-card">
+              <div class="candidates-header-top">
+                <h3>Найденные моменты (<span id="candidates-total-badge">0</span>)</h3>
+              </div>
               <div class="filter-chips">
                 <button class="chip active" data-filter="all">Все</button>
                 <button class="chip" data-filter="accepted">Принятые</button>
@@ -401,9 +461,11 @@
 
       <!-- SCREEN 4: RESULTS -->
       <section id="screen-results" class="view-screen">
-        <div class="results-header-banner card glass-card">
+        <div class="bento-card results-header-banner">
           <div class="banner-content">
-            <div class="banner-icon">🎉</div>
+            <div class="banner-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
             <div>
               <h2>Клипы успешно смонтированы!</h2>
               <p>Готовые вертикальные и горизонтальные видеоклипы с манифестами, готовые к публикации в TikTok, Shorts и Reels.</p>
@@ -411,15 +473,16 @@
           </div>
           <div class="banner-actions">
             <button class="btn btn-secondary" id="btn-open-clips-folder" title="Открыть папку с готовыми видеофайлами в проводнике">
-              <span class="icon">📂</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               <span>Открыть папку клипов</span>
             </button>
             <button class="btn btn-secondary" id="btn-view-usage-from-results">
-              <span class="icon">📊</span>
-              <span>Полный отчёт о расходах</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              <span>Отчёт о расходах</span>
             </button>
             <button class="btn btn-primary" id="btn-start-another-job">
-              <span>➕ Создать ещё задачу</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Создать ещё задачу</span>
             </button>
           </div>
         </div>
@@ -432,7 +495,7 @@
         </div>
       </section>
 
-      <!-- SCREEN 5: SETTINGS (Plan Section 11, item 5) -->
+      <!-- SCREEN 5: SETTINGS -->
       <section id="screen-settings" class="view-screen">
         <div class="screen-header">
           <h1 class="screen-title">Настройки системы и обслуживание</h1>
@@ -440,8 +503,17 @@
         </div>
 
         <div class="two-col-grid">
-          <div class="card glass-card">
-            <h2 class="card-title">1. Модель ИИ, параметры и бюджет</h2>
+          <div class="bento-card">
+            <div class="bento-card-header">
+              <div class="bento-card-title-group">
+                <span class="bento-step-num">01</span>
+                <div>
+                  <h2 class="card-title">Модель ИИ, параметры и бюджет</h2>
+                  <p class="bento-card-desc">Конфигурация вызовов Gemini Multimodal Native</p>
+                </div>
+              </div>
+            </div>
+
             <form id="system-settings-form">
               <div class="form-row">
                 <div class="form-group col-6">
@@ -494,7 +566,7 @@
                   <label class="form-label" for="sys-retention-days">Хранение временных данных (дней):</label>
                   <input type="number" min="1" max="365" id="sys-retention-days" class="form-input" value="14">
                 </div>
-                <div class="form-group col-6" style="display: flex; flex-direction: column; gap: 0.4rem; justify-content: center;">
+                <div class="form-group col-6" style="display: flex; flex-direction: column; gap: 0.5rem; justify-content: center;">
                   <label class="checkbox-label"><input type="checkbox" id="sys-auto-render"> Авто-рендер без паузы ревью</label>
                   <label class="checkbox-label"><input type="checkbox" id="sys-capcut-export"> Авто-экспорт в CapCut</label>
                   <label class="checkbox-label"><input type="checkbox" id="sys-use-nvenc"> Аппаратный кодек NVIDIA NVENC</label>
@@ -502,50 +574,73 @@
               </div>
 
               <div class="form-actions mt-3">
-                <button type="submit" class="btn btn-primary" id="btn-save-sys-settings">Сохранить параметры</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-sys-settings">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  <span>Сохранить параметры</span>
+                </button>
               </div>
             </form>
           </div>
 
-          <div class="card glass-card">
-            <h2 class="card-title">2. Профили, хранилище и резервные копии</h2>
-            <p class="form-hint" style="margin-bottom: 1rem;">Настройте области вебкамеры и геймплея для разных стримеров или выполните обслуживание базы данных и диска.</p>
+          <div class="bento-card">
+            <div class="bento-card-header">
+              <div class="bento-card-title-group">
+                <span class="bento-step-num">02</span>
+                <div>
+                  <h2 class="card-title">Профили, хранилище и бэкапы</h2>
+                  <p class="bento-card-desc">Настройки областей вебкамеры и обслуживание базы данных</p>
+                </div>
+              </div>
+            </div>
 
             <div style="margin-bottom: 1.25rem;">
-              <button type="button" class="btn btn-secondary" id="btn-open-profiles-from-settings">
-                ⚙️ Открыть редактор профилей стримеров
+              <button type="button" class="btn btn-secondary btn-full" id="btn-open-profiles-from-settings">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Редактор профилей стримеров</span>
               </button>
             </div>
 
             <div class="estimate-panel" id="settings-storage-panel" style="display: block; margin-bottom: 1.25rem;">
               <div class="estimate-header">
-                <span class="estimate-icon">💾</span>
+                <svg class="estimate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
                 <strong>Использование диска и бэкапы</strong>
               </div>
               <div class="estimate-grid" id="settings-storage-grid">
                 <div class="est-item">
-                  <span class="est-label">Всего файлов:</span>
-                  <span class="est-val" id="storage-total-files">—</span>
+                  <span class="est-label">Всего файлов</span>
+                  <span class="est-val mono-val" id="storage-total-files">—</span>
                 </div>
                 <div class="est-item">
-                  <span class="est-label">Занято на диске:</span>
-                  <span class="est-val" id="storage-total-mb">— МБ</span>
+                  <span class="est-label">Занято на диске</span>
+                  <span class="est-val mono-val" id="storage-total-mb">— МБ</span>
                 </div>
                 <div class="est-item highlight">
-                  <span class="est-label">Архивов БД:</span>
-                  <span class="est-val" id="storage-backups-count">—</span>
+                  <span class="est-label">Архивов БД</span>
+                  <span class="est-val mono-val" id="storage-backups-count">—</span>
                 </div>
               </div>
             </div>
 
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
-              <button type="button" class="btn btn-secondary" id="btn-open-out-folder">📂 Папка клипов</button>
-              <button type="button" class="btn btn-secondary" id="btn-open-capcut-folder">🎬 Проекты CapCut</button>
+              <button type="button" class="btn btn-secondary flex-1" id="btn-open-out-folder">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span>Папка клипов</span>
+              </button>
+              <button type="button" class="btn btn-secondary flex-1" id="btn-open-capcut-folder">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                <span>Проекты CapCut</span>
+              </button>
             </div>
 
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-              <button type="button" class="btn btn-secondary" id="btn-trigger-backup">📦 Создать бэкап БД</button>
-              <button type="button" class="btn btn-ghost" id="btn-trigger-cleanup">🧹 Очистить устаревшие файлы</button>
+              <button type="button" class="btn btn-secondary flex-1" id="btn-trigger-backup">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                <span>Создать бэкап БД</span>
+              </button>
+              <button type="button" class="btn btn-ghost flex-1" id="btn-trigger-cleanup">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Очистить временные</span>
+              </button>
             </div>
           </div>
         </div>
@@ -621,19 +716,19 @@
           <div class="usage-summary-grid">
             <div class="usage-stat-box">
               <span class="usage-stat-label">Всего потрачено</span>
-              <span class="usage-stat-val text-accent" id="usage-total-cost">$0.00</span>
+              <span class="usage-stat-val text-accent mono-val" id="usage-total-cost">$0.00</span>
             </div>
             <div class="usage-stat-box">
               <span class="usage-stat-label">Всего токенов</span>
-              <span class="usage-stat-val" id="usage-total-tokens">0</span>
+              <span class="usage-stat-val mono-val" id="usage-total-tokens">0</span>
             </div>
             <div class="usage-stat-box">
               <span class="usage-stat-label">Вызовов API</span>
-              <span class="usage-stat-val" id="usage-total-calls">0</span>
+              <span class="usage-stat-val mono-val" id="usage-total-calls">0</span>
             </div>
             <div class="usage-stat-box">
               <span class="usage-stat-label">Cache Hit Rate</span>
-              <span class="usage-stat-val" id="usage-cache-rate">0%</span>
+              <span class="usage-stat-val mono-val" id="usage-cache-rate">0%</span>
             </div>
           </div>
 
@@ -686,7 +781,10 @@
             <div class="profiles-sidebar">
               <div class="profiles-sidebar-header">
                 <strong>Пресеты</strong>
-                <button type="button" class="btn btn-sm btn-primary" id="btn-new-profile">+ Новый</button>
+                <button type="button" class="btn btn-sm btn-primary" id="btn-new-profile">
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Новый</span>
+                </button>
               </div>
               <ul class="profiles-list" id="profiles-sidebar-list">
                 <!-- Dynamically populated -->
@@ -733,8 +831,11 @@
                   <textarea id="prof-prompt-addon" class="form-textarea" rows="3" placeholder="Особенности стримов, фишки, эмоции, ключевые слова..."></textarea>
                 </div>
                 <div class="form-actions mt-3" style="display: flex; gap: 1rem; align-items: center;">
-                  <button type="submit" class="btn btn-primary" id="btn-save-profile">Сохранить профиль</button>
-                  <span id="profile-save-status" style="font-size: 0.85rem; color: var(--accent);"></span>
+                  <button type="submit" class="btn btn-primary" id="btn-save-profile">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Сохранить профиль</span>
+                  </button>
+                  <span id="profile-save-status" style="font-size: 0.85rem; color: var(--accent-primary);"></span>
                 </div>
               </form>
             </div>

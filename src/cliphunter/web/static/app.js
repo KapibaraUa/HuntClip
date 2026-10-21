@@ -456,7 +456,7 @@
     } finally {
       el.btnStartJob.disabled = false;
       const btnTxt = isStudioMode ? 'Нарезать по JSON (0 USD)' : 'Запустить поиск клипов';
-      el.btnStartJob.innerHTML = `<span class="icon">🚀</span><span id="btn-start-job-text">${btnTxt}</span>`;
+      el.btnStartJob.innerHTML = `<svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span id="btn-start-job-text">${btnTxt}</span>`;
     }
   });
 
@@ -743,7 +743,7 @@
         }" id="cand-card-${c.id}">
         <div class="candidate-card-header">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="score-badge ${c.score < 6 ? 'low' : ''}">★ ${c.score}/10</span>
+            <span class="score-badge ${c.score < 6 ? 'low' : ''}">${c.score}/10</span>
             <span class="category-tag">${c.category}</span>
           </div>
           <span class="badge ${c.status}">${c.status}</span>
@@ -790,14 +790,17 @@
 
         <div class="candidate-actions">
           <button class="btn btn-secondary btn-sm" onclick="window.seekTo('${c.id}')">
-            <span>▶ В плеере</span>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>В плеере</span>
           </button>
           <div style="display: flex; gap: 0.35rem;">
             <button class="btn btn-danger btn-sm" onclick="window.setCandidateStatus('${c.id}', 'rejected')">
-              Отклонить
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Отклонить</span>
             </button>
             <button class="btn btn-success btn-sm" onclick="window.setCandidateStatus('${c.id}', 'accepted')">
-              ✓ Принять
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Принять</span>
             </button>
           </div>
         </div>
@@ -925,7 +928,7 @@
 
     try {
       el.btnTriggerRender.disabled = true;
-      el.btnTriggerRender.innerHTML = '<span>⏳ Запуск монтажа...</span>';
+      el.btnTriggerRender.innerHTML = '<span class="stage-spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;margin-right:0.4rem;vertical-align:middle;"></span><span>Монтаж клипов...</span>';
       showToast(`Запуск рендера ${accepted.length} клипов...`, 'info');
 
       const res = await api(`/api/jobs/${state.currentJob.id}/render`, {
@@ -944,7 +947,7 @@
       showToast(`Ошибка рендера: ${e.message}`, 'error');
     } finally {
       el.btnTriggerRender.disabled = false;
-      el.btnTriggerRender.innerHTML = '<span>⚡ Запустить рендер клипов</span>';
+      el.btnTriggerRender.innerHTML = '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Запустить рендер клипов</span>';
     }
   });
 
@@ -1036,24 +1039,27 @@
         <div class="clip-card-body">
           <div class="clip-card-header">
             <span class="category-tag">${clip.layout}</span>
-            <span class="score-badge">★ ${clip.manifest.score || 9}/10</span>
+            <span class="score-badge">${clip.manifest.score || 9}/10</span>
           </div>
           <h4 class="clip-title">${escapeHtml(clip.manifest.title || 'Клип')}</h4>
           <div class="clip-meta-line">
-            <span>⏱ ${clip.duration_s} сек</span>
-            <span>📍 ${formatSeconds(clip.manifest.start_s)} - ${formatSeconds(clip.manifest.end_s)}</span>
+            <span>${clip.duration_s} сек</span>
+            <span>${formatSeconds(clip.manifest.start_s)} — ${formatSeconds(clip.manifest.end_s)}</span>
           </div>
           <div class="clip-download-row">
-            <a href="${clip.download_url}" class="btn btn-primary btn-sm" download>
-              <span>⬇ Скачать MP4</span>
+            <a href="${clip.download_url}" class="btn btn-primary btn-sm flex-1" download>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Скачать MP4</span>
             </a>
             <a href="${clip.capcut_download_url || `/api/clips/${clip.id}/capcut/download`}" class="btn btn-secondary btn-sm" download title="Скачать черновик для CapCut Desktop">
-              <span>🎬 CapCut (.zip)</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+              <span>CapCut (.zip)</span>
             </a>
             <button class="btn btn-secondary btn-sm" onclick="window.copyText('${escapeHtml(
               clip.manifest.title || ''
             )}')">
-              <span>📋 Заголовок</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Заголовок</span>
             </button>
           </div>
         </div>
@@ -1280,7 +1286,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        el.profileSaveStatus.textContent = '✓ Сохранено!';
+        el.profileSaveStatus.textContent = 'Сохранено';
         showToast(`Профиль "${name}" успешно сохранён`, 'success');
         await loadProfiles();
         renderProfilesSidebar(name);
