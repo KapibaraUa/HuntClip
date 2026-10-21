@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     # Storage and services
     data_dir: Path = Path("data")
     retention_days: int = 14
-    database_url: str = "postgresql+psycopg://cliphunter:cliphunter@localhost:5432/cliphunter"
+    database_url: str = "sqlite+aiosqlite:///data/cliphunter.db"
     redis_url: str = "redis://localhost:6379/0"
 
     # Telegram (phase 6)

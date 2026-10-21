@@ -62,6 +62,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     est_parser.add_argument("target", help="YouTube URL or path to local video file")
 
+    # cliphunter serve [--host HOST] [--port PORT]
+    serve_parser = subparsers.add_parser("serve", help="Launch FastAPI server and Web Review UI")
+    serve_parser.add_argument(
+        "--host", type=str, default="127.0.0.1", help="Host interface to bind (default: 127.0.0.1)"
+    )
+    serve_parser.add_argument("--port", type=int, default=8000, help="Port to bind (default: 8000)")
+    serve_parser.add_argument(
+        "--reload", action="store_true", help="Enable auto-reload on code change"
+    )
+
     return parser
 
 
@@ -105,6 +115,18 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as exc:
             print(f"\nPipeline error: {exc}", file=sys.stderr)
             return 1
+
+    if args.command == "serve":
+        import uvicorn
+
+        print(f"Starting ClipHunter Web UI on http://{args.host}:{args.port}")
+        uvicorn.run(
+            "cliphunter.api.app:app",
+            host=args.host,
+            port=args.port,
+            reload=args.reload,
+        )
+        return 0
 
     return 0
 

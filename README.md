@@ -2,20 +2,38 @@
 
 Gemini смотрит запись стрима (кадры и звук, без транскрипции), находит лучшие моменты, приложение вырезает их и отдаёт клипы. Полное ТЗ: [docs/plan.md](docs/plan.md).
 
-**Статус:** фаза 2 (Интеллект: Scan → Refine → Judge). См. [docs/PROGRESS.md](docs/PROGRESS.md).
+**Статус:** фаза 3 (Сервис, API и Ревью UI — готова к проверке). См. [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Быстрый старт (Windows, ничего не ставится в систему)
 
-Нужны `uv`, `ffmpeg` в PATH и Docker Desktop (Docker только для Postgres и Redis, в фазе 2 не обязателен).
+Нужны `uv` и `ffmpeg` в PATH (Docker опционален — по умолчанию база SQLite работает автономно).
 
 ```powershell
 uv sync --python 3.12          # создаёт .venv с Python 3.12 и зависимостями
 copy .env.example .env         # впиши GEMINI_API_KEY
-uv run pytest -q               # 93 теста проходят за несколько секунд
+uv run pytest -q               # 100 тестов проходят без платных вызовов
 uv run ruff check . ; uv run ruff format --check . ; uv run mypy
 ```
 
 Ключи только в `.env` (он в `.gitignore`). Логи маскируют ключи.
+
+## Веб-интерфейс и API (Фаза 3)
+
+Запуск веб-сервера и интерфейса ревью:
+```powershell
+uv run cliphunter serve
+# или с авто-перезагрузкой:
+uv run cliphunter serve --reload --port 8000
+```
+После запуска открой в браузере: **`http://127.0.0.1:8000`**
+
+### Экраны интерфейса:
+1. **Новая задача:** ввод ссылки на YouTube или перетаскивание локального видеофайла, выбор профиля стримера (универсальный, evelone2004, шутеры, chatting), настройка мин/макс длительности клипов, лимит бюджета и кнопка предварительной оценки стоимости (`/api/jobs/estimate`).
+2. **Ход задачи:** интерактивный степпер этапов (S0 Ingest → S1 Proxy → S2 Plan → S3 Scan → S4 Merge → S5 Refine → S6 Judge → S7 Cut), отображение текущего расхода USD и числа кандидатов, консоль событий в реальном времени по Server-Sent Events (SSE), кнопки отмены и перезапуска.
+3. **Ревью клипов:** встроенный видеоплеер с HTTP 206 потоковым воспроизведением и перемоткой прокси-видео, интерактивный скраббер с визуальными маркерами моментов, список кандидатов с карточками вирусности, кнопками подгонки границ с шагом **±0.1 с** и **±1.0 с**, форма ручного добавления момента (`POST /api/jobs/{id}/candidates`), выбор layout кадра и кнопка запуска рендера.
+4. **Результаты:** карточки готовых смонтированных клипов с предпросмотром в плеере, кнопка скачивания `.mp4`, копирование заголовков и модальное окно детальной статистики расходов и вызовов API Gemini (`/api/jobs/{id}/usage`).
+
+OpenAPI документация доступна по адресу: `http://127.0.0.1:8000/docs`.
 
 ## Использование CLI (Фаза 1)
 
@@ -72,7 +90,11 @@ uv run python scripts/eval.py
 ## Структура
 
 См. раздел 5 плана. Реализованы модули:
-- `cli.py` (CLI интерфейс)
+- `api/` (FastAPI роутеры: uploads, jobs, candidates, clips, profiles, media range streaming, SSE broadcaster)
+- `db/` (SQLAlchemy 2.0 async ORM models, session manager, CRUD repo, Alembic миграции)
+- `worker/` (Асинхронный фоновый менеджер задач, шлюз awaiting_review, рендерер)
+- `web/` (Single Page App: dark-theme интерфейс нарезчика, 4 экрана, плеер, скраббер, модальные окна)
+- `cli.py` (CLI интерфейс: run, estimate, serve)
 - `models.py` (Domain models, Pydantic v2)
 - `ingest/` (`probe.py`, `files.py`, `youtube.py`)
 - `pipeline/` (`stages.py`, `chunking.py`, `merge.py`, `validate.py`, `timecodes.py`)
@@ -82,3 +104,4 @@ uv run python scripts/eval.py
 - `scripts/` (`calibrate.py`, `eval.py`)
 
 Допущения: [docs/DECISIONS.md](docs/DECISIONS.md).
+

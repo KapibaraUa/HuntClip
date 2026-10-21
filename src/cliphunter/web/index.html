@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClipHunter — Автономный ИИ-поиск клипов и хайлайтов</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-theme">
+  <div id="app" class="app-layout">
+    <!-- Top Header -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            <circle cx="17" cy="7" r="3"></circle>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">ClipHunter</span>
+          <span class="brand-badge">AI Studio</span>
+        </div>
+      </div>
+
+      <!-- Navigation tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-screen="screen-new-job">
+          <span class="tab-icon">➕</span>
+          <span>Новая задача</span>
+        </button>
+        <button class="nav-tab" data-screen="screen-progress" id="nav-progress-tab" disabled>
+          <span class="tab-icon">⚡</span>
+          <span>Ход задачи</span>
+          <span class="badge-dot" id="progress-indicator"></span>
+        </button>
+        <button class="nav-tab" data-screen="screen-review" id="nav-review-tab" disabled>
+          <span class="tab-icon">🎬</span>
+          <span>Ревью клипов</span>
+          <span class="badge-count" id="review-count-badge">0</span>
+        </button>
+        <button class="nav-tab" data-screen="screen-results" id="nav-results-tab" disabled>
+          <span class="tab-icon">✨</span>
+          <span>Результаты</span>
+          <span class="badge-count" id="results-count-badge">0</span>
+        </button>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-show-usage" title="Статистика токенов и расходов" style="display: none;">
+          <span class="icon">📊</span>
+          <span id="header-cost-pill">$0.00</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btn-recent-jobs" title="История задач">
+          <span class="icon">🕒</span>
+          <span>Задачи</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="content-container">
+      
+      <!-- SCREEN 1: NEW JOB -->
+      <section id="screen-new-job" class="view-screen active">
+        <div class="screen-header">
+          <div class="hero-badge">Gemini Multimodal Native Analysis</div>
+          <h1 class="screen-title">Найти вирусные клипы в стриме</h1>
+          <p class="screen-subtitle">ИИ смотрит видеоряд и слушает звук целиком, выявляя самые эмоциональные и яркие моменты без транскриптов.</p>
+        </div>
+
+        <div class="two-col-grid">
+          <!-- Input Source Card -->
+          <div class="card glass-card">
+            <h2 class="card-title">1. Источник стрима</h2>
+            
+            <div class="input-tabs">
+              <button class="tab-btn active" id="tab-btn-url">YouTube Ссылка</button>
+              <button class="tab-btn" id="tab-btn-file">Локальный файл</button>
+            </div>
+
+            <div id="input-url-group" class="tab-content active">
+              <label class="form-label" for="input-youtube-url">Ссылка на YouTube (стрим, VOD или запись):</label>
+              <div class="input-with-action">
+                <input type="url" id="input-youtube-url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+                <button type="button" class="btn btn-secondary" id="btn-estimate-cost">Оценить</button>
+              </div>
+              <p class="form-hint">Поддерживаются стандартные ссылки watch, live-трансляции и youtu.be</p>
+            </div>
+
+            <div id="input-file-group" class="tab-content">
+              <label class="form-label">Перетащите видеофайл или выберите с диска:</label>
+              <div class="dropzone" id="file-dropzone">
+                <div class="dropzone-icon">📁</div>
+                <div class="dropzone-text">
+                  <strong>Перетащите файл сюда</strong> или <span class="dropzone-browse">выберите файл</span>
+                </div>
+                <p class="dropzone-sub">MP4, MKV, MOV, WEBM (до 10 ГБ)</p>
+                <input type="file" id="file-input-element" accept="video/mp4,video/mkv,video/mov,video/webm" style="display: none;">
+              </div>
+              <div id="upload-progress-box" class="upload-progress-box" style="display: none;">
+                <div class="progress-info">
+                  <span id="upload-file-name" class="upload-filename">stream.mp4</span>
+                  <span id="upload-percent">0%</span>
+                </div>
+                <div class="progress-track">
+                  <div id="upload-progress-fill" class="progress-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estimate Preview Panel -->
+            <div id="estimate-panel" class="estimate-panel" style="display: none;">
+              <div class="estimate-header">
+                <span class="icon">⚡</span>
+                <span class="estimate-title" id="est-title">Стрим</span>
+              </div>
+              <div class="estimate-meta-row">
+                <div class="meta-item">
+                  <span class="meta-label">Длительность:</span>
+                  <span class="meta-value" id="est-duration">--</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Канал:</span>
+                  <span class="meta-value" id="est-channel">--</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Оценка затрат:</span>
+                  <span class="meta-value text-accent" id="est-cost">~$0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuration & Profile Card -->
+          <div class="card glass-card">
+            <h2 class="card-title">2. Настройки и профиль</h2>
+            
+            <div class="form-group">
+              <label class="form-label" for="select-profile">Профиль стримера / шаблона:</label>
+              <select id="select-profile" class="form-select">
+                <option value="default">Универсальный (default)</option>
+                <option value="evelone2004">Evelone192 (CS2 / Just Chatting)</option>
+                <option value="gaming_action">Игровой экшен (Шутеры/MMO)</option>
+                <option value="just_chatting">Общение и реакции</option>
+              </select>
+              <p class="form-hint" id="profile-addon-hint">Фокус на эмоциональных пиках и шутках.</p>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label class="form-label" for="input-clip-min">Мин. длина клипа (сек):</label>
+                <input type="number" id="input-clip-min" class="form-input" min="5" max="180" value="20">
+              </div>
+              <div class="form-group col-6">
+                <label class="form-label" for="input-clip-max">Макс. длина клипа (сек):</label>
+                <input type="number" id="input-clip-max" class="form-input" min="15" max="300" value="90">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="input-max-cost">Лимит бюджета на задачу (USD):</label>
+              <div class="input-with-symbol">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="input-max-cost" class="form-input" min="0.5" max="50" step="0.5" value="5.0">
+              </div>
+              <p class="form-hint">Если стоимость превысит лимит, пайплайн остановится.</p>
+            </div>
+
+            <div class="action-footer">
+              <button class="btn btn-primary btn-lg btn-full" id="btn-start-job">
+                <span class="icon">🚀</span>
+                <span>Запустить поиск клипов</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: PROGRESS -->
+      <section id="screen-progress" class="view-screen">
+        <div class="progress-hero-card card glass-card">
+          <div class="progress-top-bar">
+            <div>
+              <span class="badge" id="job-status-badge">running</span>
+              <h2 class="progress-stream-title" id="progress-job-title">Обработка стрима...</h2>
+              <span class="mono-id" id="progress-job-id">job-id</span>
+            </div>
+            <div class="progress-stats-capsules">
+              <div class="stat-capsule">
+                <span class="stat-lbl">Текущий расход</span>
+                <span class="stat-val" id="progress-cost-val">$0.000</span>
+              </div>
+              <div class="stat-capsule">
+                <span class="stat-lbl">Кандидатов</span>
+                <span class="stat-val" id="progress-cand-count">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline Stepper -->
+          <div class="stepper-timeline" id="stepper-timeline">
+            <div class="step-node" data-stage="s0_ingest">
+              <div class="node-circle">0</div>
+              <div class="node-label">Ingest</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-stage="s1_download_proxy">
+              <div class="node-circle">1</div>
+              <div class="node-label">Proxy</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-stage="s2_chunk_plan">
+              <div class="node-circle">2</div>
+              <div class="node-label">Plan</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-stage="s3_scan">
+              <div class="node-circle">3</div>
+              <div class="node-label">Scan S3</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-stage="s4_merge">
+              <div class="node-circle">4</div>
+              <div class="node-label">Merge</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-stage="s5_refine">
+              <div class="node-circle">5</div>
+              <div class="node-label">Refine S5</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-stage="s6_judge">
+              <div class="node-circle">6</div>
+              <div class="node-label">Judge S6</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-node" data-stage="s7_cut">
+              <div class="node-circle">7</div>
+              <div class="node-label">Cut/Render</div>
+            </div>
+          </div>
+
+          <!-- Active stage details -->
+          <div class="active-stage-card">
+            <div class="stage-spinner" id="stage-spinner"></div>
+            <div class="stage-text-block">
+              <h3 id="current-stage-name">Подготовка к анализу...</h3>
+              <p id="current-stage-desc">Инициализация рабочих файлов и проверка метаданных видео.</p>
+            </div>
+            <div class="stage-controls">
+              <button class="btn btn-danger btn-sm" id="btn-cancel-job">Отменить</button>
+              <button class="btn btn-secondary btn-sm" id="btn-retry-job" style="display: none;">Повторить</button>
+              <button class="btn btn-accent btn-sm" id="btn-go-to-review" style="display: none;">Перейти к ревью →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Realtime Events Console -->
+        <div class="card glass-card console-card">
+          <div class="console-header">
+            <span class="icon">📟</span>
+            <span>Журнал событий реального времени (SSE)</span>
+            <span class="console-live-tag">LIVE</span>
+          </div>
+          <div class="console-body" id="console-stream-log">
+            <div class="log-line text-muted">[system] Ожидание подключения потока событий...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: REVIEW -->
+      <section id="screen-review" class="view-screen">
+        <div class="review-layout">
+          <!-- Video Player Column -->
+          <div class="player-column">
+            <div class="card glass-card player-card">
+              <div class="video-wrapper">
+                <video id="review-video-player" controls preload="metadata" playsinline>
+                  <source id="video-source" src="" type="video/mp4">
+                  Ваш браузер не поддерживает HTML5 видео.
+                </video>
+              </div>
+
+              <!-- Candidate Scrubbing Bar Overlay -->
+              <div class="timeline-scrubber" id="timeline-scrubber">
+                <div class="scrubber-bar" id="scrubber-bar">
+                  <div class="scrubber-progress" id="scrubber-progress"></div>
+                  <!-- Candidate ranges will be rendered here dynamically -->
+                  <div id="scrubber-markers-layer" class="scrubber-markers"></div>
+                </div>
+                <div class="scrubber-timecodes">
+                  <span id="player-current-time" class="mono-ts">00:00.0</span>
+                  <span id="player-total-duration" class="mono-ts">00:00.0</span>
+                </div>
+              </div>
+
+              <!-- Quick player controls -->
+              <div class="player-subcontrols">
+                <div class="time-nudge-group">
+                  <span class="nudge-label">Перемотка:</span>
+                  <button class="btn btn-ghost btn-xs" id="btn-nudge-back-5s">-5s</button>
+                  <button class="btn btn-ghost btn-xs" id="btn-nudge-back-1s">-1s</button>
+                  <button class="btn btn-ghost btn-xs" id="btn-nudge-back-01s">-0.1s</button>
+                  <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-01s">+0.1s</button>
+                  <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-1s">+1s</button>
+                  <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-5s">+5s</button>
+                </div>
+                <div>
+                  <button class="btn btn-secondary btn-sm" id="btn-add-moment-modal">
+                    <span>➕ Добавить момент</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Render Toolbar Card -->
+            <div class="card glass-card render-toolbar">
+              <div class="render-info">
+                <div>
+                  <span class="render-count-highlight" id="accepted-clips-count">0</span> клипов выбрано к монтажу
+                </div>
+                <div class="render-layout-picker">
+                  <label for="select-render-layout" class="layout-label">Формат кадра:</label>
+                  <select id="select-render-layout" class="form-select form-select-sm">
+                    <option value="original">16:9 Исходный (Direct cut)</option>
+                    <option value="blur_fit_9x16">9:16 Размытый фон (Blur-fit)</option>
+                    <option value="facecam_top_game_bottom_9x16">9:16 Фейскам + Геймплей (Split)</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-success btn-lg" id="btn-trigger-render">
+                <span>⚡ Запустить рендер клипов</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Candidate List Column -->
+          <div class="candidates-column">
+            <div class="candidates-header">
+              <h3>Найденные моменты (<span id="candidates-total-badge">0</span>)</h3>
+              <div class="filter-chips">
+                <button class="chip active" data-filter="all">Все</button>
+                <button class="chip" data-filter="accepted">Принятые</button>
+                <button class="chip" data-filter="rejected">Отклонённые</button>
+              </div>
+            </div>
+
+            <div class="candidates-list" id="candidates-scroll-list">
+              <!-- Dynamically populated candidate cards -->
+              <div class="empty-state">
+                <p>Кандидаты загружаются...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: RESULTS -->
+      <section id="screen-results" class="view-screen">
+        <div class="results-header-banner card glass-card">
+          <div class="banner-content">
+            <div class="banner-icon">🎉</div>
+            <div>
+              <h2>Клипы успешно смонтированы!</h2>
+              <p>Готовые вертикальные и горизонтальные видеоклипы с манифестами, готовые к публикации в TikTok, Shorts и Reels.</p>
+            </div>
+          </div>
+          <div class="banner-actions">
+            <button class="btn btn-secondary" id="btn-view-usage-from-results">
+              <span class="icon">📊</span>
+              <span>Полный отчёт о расходах</span>
+            </button>
+            <button class="btn btn-primary" id="btn-start-another-job">
+              <span>➕ Создать ещё задачу</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="clips-grid" id="clips-grid-container">
+          <!-- Dynamically populated clip cards -->
+          <div class="empty-state">
+            <p>Клипы ещё не отрендерены.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- MODAL: Add Manual Moment -->
+    <div class="modal-backdrop" id="modal-add-moment" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Добавить момент вручную</h3>
+          <button class="modal-close-btn" id="btn-close-moment-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="manual-title">Заголовок / Что происходит:</label>
+            <input type="text" id="manual-title" class="form-input" placeholder="Например: Невероятный клатч 1 в 4 на последних секундах">
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label class="form-label" for="manual-start">Начало (сек):</label>
+              <div class="input-with-action">
+                <input type="number" step="0.1" id="manual-start" class="form-input">
+                <button type="button" class="btn btn-ghost btn-xs" id="btn-set-start-now">Сейчас</button>
+              </div>
+            </div>
+            <div class="form-group col-6">
+              <label class="form-label" for="manual-end">Конец (сек):</label>
+              <div class="input-with-action">
+                <input type="number" step="0.1" id="manual-end" class="form-input">
+                <button type="button" class="btn btn-ghost btn-xs" id="btn-set-end-now">Сейчас</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label class="form-label" for="manual-category">Категория:</label>
+              <select id="manual-category" class="form-select">
+                <option value="game_moment">Игровой момент (game_moment)</option>
+                <option value="emotional_peak">Эмоциональный пик (emotional_peak)</option>
+                <option value="funny">Юмор / Шутка (funny)</option>
+                <option value="story">История (story)</option>
+                <option value="epic">Эпик / Победа (epic)</option>
+                <option value="hot_take">Спорное мнение (hot_take)</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label class="form-label" for="manual-score">Оценка (1-10):</label>
+              <input type="number" id="manual-score" class="form-input" min="1" max="10" value="9">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="manual-reason">Почему это вирусно:</label>
+            <textarea id="manual-reason" class="form-textarea" rows="2" placeholder="Причина отбора вручную..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="btn-cancel-manual-moment">Отмена</button>
+          <button class="btn btn-primary" id="btn-save-manual-moment">Добавить в клипы</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Token & Usage Accounting -->
+    <div class="modal-backdrop" id="modal-usage" style="display: none;">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <h3>Детализация расходов и вызовов API Gemini</h3>
+          <button class="modal-close-btn" id="btn-close-usage-modal">&times;</button>
+        </div>
+        <div class="modal-body" id="usage-modal-content">
+          <div class="usage-summary-grid">
+            <div class="usage-stat-box">
+              <span class="usage-stat-label">Всего потрачено</span>
+              <span class="usage-stat-val text-accent" id="usage-total-cost">$0.00</span>
+            </div>
+            <div class="usage-stat-box">
+              <span class="usage-stat-label">Всего токенов</span>
+              <span class="usage-stat-val" id="usage-total-tokens">0</span>
+            </div>
+            <div class="usage-stat-box">
+              <span class="usage-stat-label">Вызовов API</span>
+              <span class="usage-stat-val" id="usage-total-calls">0</span>
+            </div>
+            <div class="usage-stat-box">
+              <span class="usage-stat-label">Cache Hit Rate</span>
+              <span class="usage-stat-val" id="usage-cache-rate">0%</span>
+            </div>
+          </div>
+
+          <h4 class="mt-4">Расход по этапам пайплайна</h4>
+          <div class="table-responsive">
+            <table class="data-table" id="usage-stages-table">
+              <thead>
+                <tr>
+                  <th>Этап</th>
+                  <th>Вызовов</th>
+                  <th>Входные токены</th>
+                  <th>Выходные токены</th>
+                  <th>Затраты</th>
+                </tr>
+              </thead>
+              <tbody id="usage-stages-tbody"></tbody>
+            </table>
+          </div>
+
+          <h4 class="mt-4">Журнал платных запросов</h4>
+          <div class="table-responsive call-logs-table-container">
+            <table class="data-table" id="usage-calls-table">
+              <thead>
+                <tr>
+                  <th>Время</th>
+                  <th>Этап</th>
+                  <th>Модель</th>
+                  <th>Вход</th>
+                  <th>Выход</th>
+                  <th>Стоимость</th>
+                  <th>Кэш</th>
+                </tr>
+              </thead>
+              <tbody id="usage-calls-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Recent Jobs Drawer -->
+    <div class="modal-backdrop" id="modal-recent-jobs" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>История задач</h3>
+          <button class="modal-close-btn" id="btn-close-jobs-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="jobs-list" id="recent-jobs-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
