@@ -15,6 +15,9 @@ def build_clip_manifest(
     output_file: Path,
     model: str,
     mode: str,
+    layout: str = "original",
+    template: str = "default",
+    capcut_draft_dir: Path | str | None = None,
 ) -> ClipManifest:
     source_ref = job.source.url or job.source.path or "unknown"
     return ClipManifest(
@@ -33,6 +36,9 @@ def build_clip_manifest(
         model=model,
         mode=mode,
         prompt_version=candidate.prompt_version,
+        layout=layout,
+        template=template,
+        capcut_draft_dir=str(capcut_draft_dir) if capcut_draft_dir else None,
         output_file=str(output_file),
     )
 

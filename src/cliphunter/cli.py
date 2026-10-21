@@ -3,10 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 from cliphunter.config import get_settings
+from cliphunter.export.capcut import (
+    CapCutClipSpec,
+    CapCutExporter,
+    install_draft_to_capcut,
+    validate_capcut_draft,
+)
 from cliphunter.ingest.probe import probe_source
 from cliphunter.llm.budget import estimate_video_cost
 from cliphunter.logging import setup_logging
@@ -55,12 +62,51 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument(
         "--out", type=Path, default=None, help="Custom output directory for clips"
     )
+    run_parser.add_argument(
+        "--capcut",
+        action="store_true",
+        help="Also generate CapCut Desktop drafts for rendered clips",
+    )
 
     # cliphunter estimate <target>
     est_parser = subparsers.add_parser(
         "estimate", help="Estimate tokens and cost for a video without processing"
     )
     est_parser.add_argument("target", help="YouTube URL or path to local video file")
+
+    # cliphunter capcut-export <target>
+    cc_parser = subparsers.add_parser(
+        "capcut-export",
+        help="Export an MP4 clip or job output directory into CapCut Desktop draft(s)",
+    )
+    cc_parser.add_argument(
+        "target",
+        type=Path,
+        help="Path to a rendered .mp4 clip or job output folder containing manifest.json",
+    )
+    cc_parser.add_argument(
+        "--title",
+        type=str,
+        default="",
+        help="Headline hook text for the draft (when exporting a single .mp4)",
+    )
+    cc_parser.add_argument(
+        "--layout",
+        type=str,
+        default="center_crop_9x16",
+        help="Canvas layout (e.g. center_crop_9x16 or original)",
+    )
+    cc_parser.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="Output directory where capcut_drafts/ will be created",
+    )
+    cc_parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Also copy the generated draft into the local CapCut drafts directory",
+    )
 
     # cliphunter serve [--host HOST] [--port PORT]
     serve_parser = subparsers.add_parser("serve", help="Launch FastAPI server and Web Review UI")
@@ -97,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
             max_cost_usd=args.budget or settings.max_cost_usd_per_job,
             auto_yes=args.yes,
             profile_path=args.profile,
+            capcut_export=True if args.capcut else None,
         )
 
         runner = PipelineRunner(
@@ -115,6 +162,58 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as exc:
             print(f"\nPipeline error: {exc}", file=sys.stderr)
             return 1
+
+    if args.command == "capcut-export":
+        target_path: Path = args.target
+        if not target_path.exists():
+            print(f"Target not found: {target_path}", file=sys.stderr)
+            return 1
+
+        if target_path.is_dir():
+            out_dir = args.out or target_path
+            exporter = CapCutExporter(out_dir=out_dir)
+            manifest_file = target_path / "manifest.json"
+            drafts: list[Path] = []
+            if manifest_file.is_file():
+                data = json.loads(manifest_file.read_text(encoding="utf-8"))
+                for clip_dict in data.get("clips", []):
+                    d_path = exporter.export(clip_dict)
+                    drafts.append(d_path)
+            else:
+                for mp4 in sorted(target_path.glob("*.mp4")):
+                    d_path = exporter.export(
+                        CapCutClipSpec(
+                            clip_id=mp4.stem,
+                            video_path=mp4,
+                            title=args.title or mp4.stem,
+                            layout=args.layout,
+                        )
+                    )
+                    drafts.append(d_path)
+            for d_path in drafts:
+                validate_capcut_draft(d_path)
+                print(f"CapCut draft exported: {d_path}")
+                if args.install:
+                    inst = install_draft_to_capcut(d_path)
+                    print(f"Installed to CapCut: {inst}")
+            return 0
+
+        out_dir = args.out or target_path.parent
+        exporter = CapCutExporter(out_dir=out_dir)
+        draft_path = exporter.export(
+            CapCutClipSpec(
+                clip_id=target_path.stem,
+                video_path=target_path,
+                title=args.title or target_path.stem,
+                layout=args.layout,
+            )
+        )
+        validate_capcut_draft(draft_path)
+        print(f"CapCut draft exported: {draft_path}")
+        if args.install:
+            inst = install_draft_to_capcut(draft_path)
+            print(f"Installed to CapCut: {inst}")
+        return 0
 
     if args.command == "serve":
         import uvicorn

@@ -123,6 +123,8 @@ class JobParams(BaseModel):
     max_cost_usd: float = 5.0
     auto_yes: bool = False
     profile_path: Path | None = None
+    layout: str = "original"
+    capcut_export: bool | None = None
 
 
 class Job(BaseModel):
@@ -161,5 +163,8 @@ class ClipManifest(BaseModel):
     model: str
     mode: str
     prompt_version: int
+    layout: str = "original"
+    template: str = "default"
+    capcut_draft_dir: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     output_file: str

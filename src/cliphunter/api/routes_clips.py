@@ -12,11 +12,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cliphunter.db.models import ClipORM
 from cliphunter.db.repo import get_clip, get_clips_for_job, get_job, get_job_api_calls
 from cliphunter.db.session import get_db
+from cliphunter.export.capcut import (
+    CapCutClipSpec,
+    CapCutExporter,
+    validate_capcut_draft,
+    zip_capcut_draft,
+)
 
 router = APIRouter(tags=["clips"])
 
 
 def _clip_to_dict(c: ClipORM) -> dict[str, Any]:
+    manifest = c.manifest or {}
     return {
         "id": c.id,
         "job_id": c.job_id,
@@ -25,9 +32,12 @@ def _clip_to_dict(c: ClipORM) -> dict[str, Any]:
         "layout": c.layout,
         "template": c.template,
         "duration_s": c.duration_s,
-        "manifest": c.manifest or {},
+        "manifest": manifest,
+        "capcut_draft_dir": manifest.get("capcut_draft_dir"),
         "created_at": c.created_at.isoformat() if c.created_at else None,
         "download_url": f"/api/clips/{c.id}/download",
+        "capcut_export_url": f"/api/clips/{c.id}/capcut",
+        "capcut_download_url": f"/api/clips/{c.id}/capcut/download",
         "stream_url": f"/api/media/clips/{c.id}",
     }
 
@@ -73,6 +83,69 @@ async def download_clip_file(
         path=str(file_path),
         filename=filename,
         media_type="video/mp4",
+    )
+
+
+async def _ensure_capcut_draft(clip: ClipORM, session: AsyncSession) -> Path:
+    """Exports or returns existing CapCut draft directory for a clip."""
+    file_path = Path(clip.path)
+    out_dir = file_path.parent if file_path.parent.name else Path(f"data/jobs/{clip.job_id}/out")
+    manifest = dict(clip.manifest or {})
+    title = str(manifest.get("title") or manifest.get("working_title") or clip.id)
+
+    exporter = CapCutExporter(out_dir=out_dir)
+    draft_dir = exporter.export(
+        CapCutClipSpec(
+            clip_id=clip.id,
+            video_path=file_path,
+            title=title,
+            duration_s=clip.duration_s,
+            layout=clip.layout,
+            template=clip.template,
+        )
+    )
+    manifest["capcut_draft_dir"] = str(draft_dir)
+    clip.manifest = manifest
+    await session.commit()
+    return draft_dir
+
+
+@router.post("/api/clips/{clip_id}/capcut")
+async def export_clip_capcut_draft(
+    clip_id: str,
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Generates a CapCut Desktop draft folder for a rendered clip."""
+    clip = await get_clip(session, clip_id)
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+
+    draft_dir = await _ensure_capcut_draft(clip, session)
+    validation = validate_capcut_draft(draft_dir)
+    return {
+        "clip_id": clip.id,
+        "draft_dir": str(draft_dir),
+        "download_url": f"/api/clips/{clip.id}/capcut/download",
+        "validation": validation,
+    }
+
+
+@router.get("/api/clips/{clip_id}/capcut/download")
+async def download_clip_capcut_zip(
+    clip_id: str,
+    session: AsyncSession = Depends(get_db),
+) -> FileResponse:
+    """Downloads the CapCut draft folder packaged as a `.zip` archive."""
+    clip = await get_clip(session, clip_id)
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+
+    draft_dir = await _ensure_capcut_draft(clip, session)
+    zip_path = zip_capcut_draft(draft_dir)
+    return FileResponse(
+        path=str(zip_path),
+        filename=f"{clip.id}_capcut_draft.zip",
+        media_type="application/zip",
     )
 
 

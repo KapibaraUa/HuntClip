@@ -327,10 +327,15 @@
                   <label for="select-render-layout" class="layout-label">Формат кадра:</label>
                   <select id="select-render-layout" class="form-select form-select-sm">
                     <option value="original">16:9 Исходный (Direct cut)</option>
+                    <option value="center_crop_9x16">9:16 Центр (Center crop)</option>
                     <option value="blur_fit_9x16">9:16 Размытый фон (Blur-fit)</option>
                     <option value="facecam_top_game_bottom_9x16">9:16 Фейскам + Геймплей (Split)</option>
                   </select>
                 </div>
+                <label class="layout-label" style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                  <input type="checkbox" id="checkbox-capcut-export">
+                  <span>Черновик CapCut</span>
+                </label>
               </div>
               <button class="btn btn-success btn-lg" id="btn-trigger-render">
                 <span>⚡ Запустить рендер клипов</span>

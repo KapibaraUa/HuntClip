@@ -77,3 +77,22 @@
     - В веб-интерфейсе ревью селектор layout передает выбранный формат в запрос рендера.
     - Манифест клипа и запись в БД `ClipORM` сохраняют фактически примененные `layout` и `template`.
 
+## Фаза 5 (Экспорт в CapCut)
+
+48. **Зафиксированная версия CapCut Desktop:**
+    - Проверенная версия на целевой Windows-машине: **CapCut Desktop `9.6.0.4097`** (`app_id: 359289`, `app_source: "cc"`, схема черновика `version: 360000`, `new_version: "138.0.0"`).
+    - Рекомендуется отключить автообновление CapCut (в настройках CapCut и/или запретом на запись папки `Apps\`), чтобы обновления клиента не ломали локальную JSON-схему черновиков.
+    - Контракт схемы зафиксирован в эталонной фикстуре `tests/fixtures/capcut_9_6_0_reference.json` и проверяется smoke-тестом `test_smoke_capcut_reference_fixture` и функцией `validate_capcut_draft()`.
+49. **Двойная совместимость файлов черновика (`draft_content.json` + `draft_info.json`):**
+    - CapCut Desktop `9.6.0.4097` на Windows читает таймлайн из `draft_content.json`, тогда как старые сборки CapCut 5.x/6.x и сторонние утилиты (`pyCapCut` / `VectCutAPI`) обращаются к `draft_info.json`.
+    - `CapCutExporter.export(clip)` синхронно записывает оба файла (`draft_content.json` и `draft_info.json`), а также `draft_meta_info.json`, `draft_agency_config.json`, `draft_biz_config.json`, `draft_virtual_store.json`, `attachment_pc_common.json`, `timeline_layout.json` и `draft_settings`.
+50. **Структура таймлайна и материалов (`src/cliphunter/export/capcut.py`):**
+    - Все временные интервалы в CapCut хранятся в микросекундах (`1 с = 1_000_000 мкс`).
+    - На дорожку `video_main` (`type: "video"`, `render_index: 0`) помещается видеоклип с привязкой к `materials.videos`, `materials.speeds`, `materials.canvases`, `materials.sound_channel_mappings` и `materials.vocal_separations`.
+    - На дорожку `title_hook` (`type: "text"`, `render_index: 15000`) помещается текстовый заголовок-хук на первые `3.5` секунды клипа (`transform.y = 0.65`, жирный белый шрифт с чёрной обводкой и полупрозрачной подложкой).
+    - При наличии субтитров (`SubtitleWord` или `.ass`-файла от модуля `subtitles.py`) создаётся третья дорожка `subtitles` (`type: "text"`, `render_index: 15001`, `transform.y = -0.75`) с непересекающимися по времени фразами.
+51. **Сквозная интеграция в CLI, API и Web UI:**
+    - В CLI добавлен флаг `--capcut` для `cliphunter run` и отдельная команда `cliphunter capcut-export <mp4_or_dir> [--title ...] [--layout ...] [--install]`, которая умеет сразу копировать черновик в системный каталог CapCut `%LOCALAPPDATA%\CapCut\User Data\Projects\com.lveditor.draft\` и регистрировать его в `root_meta_info.json`.
+    - В FastAPI добавлены эндпоинты `POST /api/clips/{clip_id}/capcut` и `GET /api/clips/{clip_id}/capcut/download` (отдаёт готовый `.zip`-архив черновика), а в Web UI на экране результатов — кнопка скачивания `🎬 CapCut (.zip)`.
+
+

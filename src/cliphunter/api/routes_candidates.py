@@ -44,6 +44,7 @@ class RenderJobRequest(BaseModel):
     selected_candidate_ids: list[str] | None = None
     layout: str = "original"
     template: str = "default"
+    capcut_export: bool | None = None
 
 
 def _cand_to_dict(c: CandidateORM) -> dict[str, Any]:
@@ -162,6 +163,7 @@ async def render_job_candidates(
     selected_ids = req.selected_candidate_ids if req else None
     layout = req.layout if req else "original"
     template = req.template if req else "default"
+    capcut_export = req.capcut_export if req else None
 
     # Trigger render in background or await
     clips = await task_manager.render_job(
@@ -169,6 +171,7 @@ async def render_job_candidates(
         selected_candidate_ids=selected_ids,
         layout=layout,
         template=template,
+        capcut_export=capcut_export,
     )
 
     return {

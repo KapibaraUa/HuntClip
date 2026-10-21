@@ -20,6 +20,7 @@ from cliphunter.db.repo import (
     upsert_source,
 )
 from cliphunter.db.session import Database, get_db_manager
+from cliphunter.export.capcut import CapCutClipSpec, CapCutExporter
 from cliphunter.ingest.probe import probe_source
 from cliphunter.ingest.youtube import download_section
 from cliphunter.llm.budget import Budget
@@ -298,11 +299,14 @@ class JobTaskManager:
         selected_candidate_ids: list[str] | None = None,
         layout: str = "original",
         template: str = "default",
+        capcut_export: bool | None = None,
     ) -> list[ClipORM]:
         """Renders accepted candidates into mp4 clips with layout & template and saves to DB."""
         await self._broadcast_stage(
             job_id, "s7_cut", f"Rendering final clips with layout '{layout}'..."
         )
+
+        do_capcut = capcut_export if capcut_export is not None else self.settings.capcut_export
 
         async with self.db.session_factory() as session:
             job_orm = await get_job(session, job_id)
@@ -315,6 +319,7 @@ class JobTaskManager:
 
             out_dir = Path(job_orm.output_dir or f"data/jobs/{job_id}/out")
             out_dir.mkdir(parents=True, exist_ok=True)
+            exporter = CapCutExporter(out_dir=out_dir) if do_capcut else None
 
             profile: Profile | None = None
             if job_orm.profile_id:
@@ -369,8 +374,23 @@ class JobTaskManager:
                     title=cand.working_title,
                 )
 
+                clip_id = f"clip_{c_orm.id}_{layout}"
+                draft_dir_str: str | None = None
+                if exporter is not None:
+                    draft_path = exporter.export(
+                        CapCutClipSpec(
+                            clip_id=clip_id,
+                            video_path=out_clip_path,
+                            title=cand.working_title,
+                            duration_s=cand.duration_s,
+                            layout=layout,
+                            template=template,
+                        )
+                    )
+                    draft_dir_str = str(draft_path)
+
                 clip_orm = ClipORM(
-                    id=f"clip_{c_orm.id}_{layout}",
+                    id=clip_id,
                     job_id=job_id,
                     candidate_id=c_orm.id,
                     path=str(out_clip_path),
@@ -387,6 +407,7 @@ class JobTaskManager:
                         "title_options": cand.title_options,
                         "layout": layout,
                         "template": template,
+                        "capcut_draft_dir": draft_dir_str,
                     },
                 )
                 await save_clip(session, clip_orm)

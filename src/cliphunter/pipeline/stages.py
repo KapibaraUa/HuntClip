@@ -10,6 +10,7 @@ from typing import Any
 import yaml
 
 from cliphunter.config import Settings
+from cliphunter.export.capcut import CapCutExporter
 from cliphunter.export.manifest import build_clip_manifest, save_job_manifest
 from cliphunter.ingest.probe import probe_source
 from cliphunter.ingest.youtube import download_section
@@ -266,6 +267,13 @@ class PipelineRunner:
         rendered_manifests: list[dict[str, Any]] = []
         log.info("Rendering %d selected clips to %s...", len(job.candidates), out_dir)
 
+        export_capcut = (
+            job.params.capcut_export
+            if job.params.capcut_export is not None
+            else self.settings.capcut_export
+        )
+        capcut_exporter = CapCutExporter(out_dir=out_dir) if export_capcut else None
+
         for i, cand in enumerate(job.candidates, start=1):
             out_clip_path = cut_candidate(
                 candidate=cand,
@@ -280,7 +288,12 @@ class PipelineRunner:
                 output_file=out_clip_path,
                 model=self.settings.gemini_model,
                 mode="static_scan",
+                layout=job.params.layout,
             )
+            if capcut_exporter is not None:
+                draft_dir = capcut_exporter.export(manifest)
+                manifest.capcut_draft_dir = str(draft_dir)
+
             rendered_manifests.append(manifest.model_dump())
 
         job.rendered_clips = rendered_manifests

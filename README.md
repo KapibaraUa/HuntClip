@@ -2,7 +2,7 @@
 
 Gemini смотрит запись стрима (кадры и звук, без транскрипции), находит лучшие моменты, приложение вырезает их и отдаёт клипы. Полное ТЗ: [docs/plan.md](docs/plan.md).
 
-**Статус:** фаза 3 (Сервис, API и Ревью UI — готова к проверке). См. [docs/PROGRESS.md](docs/PROGRESS.md).
+**Статус:** фаза 5 (Экспорт в CapCut — готова к проверке). См. [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Быстрый старт (Windows, ничего не ставится в систему)
 
@@ -58,6 +58,28 @@ OpenAPI документация доступна по адресу: `http://127
    - `manifest.json` задачи и манифест каждого клипа.
    - Идемпотентность и возобновление: повторный запуск на том же видео берёт всё из кэша и стоит 0 USD. В случае сбоя пайплайн автоматически продолжает работу с последнего завершённого этапа (`state.json`).
 
+## Экспорт черновиков в CapCut Desktop (Фаза 5)
+
+По умолчанию экспорт в CapCut выключен (`CAPCUT_EXPORT=false` в `.env`), но его можно включить глобально, через галочку «Черновик CapCut» в веб-интерфейсе, флагом `--capcut` в CLI или отдельной командой `cliphunter capcut-export`.
+
+- **Проверенная версия CapCut Desktop:** `9.6.0.4097` (Windows, схема `version: 360000`). Рекомендуется отключить автообновление CapCut, чтобы обновления приложения не меняли формат локальных черновиков.
+- **Структура черновика:** сохраняется в `out/{job}/capcut_drafts/{clip_id}/` (содержит `draft_content.json`, `draft_info.json`, `draft_meta_info.json` и служебные конфиги; на таймлайне размещаются видеоклип `video_main`, заголовок-хук `title_hook` и при наличии — дорожка субтитров `subtitles`).
+
+### Как открыть черновик в CapCut:
+
+1. **Автоматическая установка через CLI (`--install`):**
+   ```powershell
+   uv run cliphunter capcut-export data/demo_clips/03_Стрим__Evelone192_эпичный_момент_facecam_top_game_bottom_9x16.mp4 --title "Эпичный момент Evelone192" --layout facecam_top_game_bottom_9x16 --install
+   ```
+   Команда создаст черновик и автоматически скопирует его в папку проектов CapCut (`%LOCALAPPDATA%\CapCut\User Data\Projects\com.lveditor.draft\`).
+
+2. **Ручное копирование папки черновика:**
+   - Скопируй папку `out/{job}/capcut_drafts/{clip_id}` (или распакованный `.zip` из веб-интерфейса) в каталог черновиков CapCut:
+     ```text
+     %LOCALAPPDATA%\CapCut\User Data\Projects\com.lveditor.draft\
+     ```
+   - Запусти (или перезапусти) CapCut Desktop — проект появится первым в списке на главном экране с готовым клипом и заголовком на таймлайне.
+
 ## Калибровка (фаза 0)
 
 1. Скопируй `golden/calibration.example.yaml` в `calibration/calibration.yaml`: ссылка на публичный стрим, окно 10 минут и эталонные моменты.
@@ -99,8 +121,8 @@ uv run python scripts/eval.py
 - `ingest/` (`probe.py`, `files.py`, `youtube.py`)
 - `pipeline/` (`stages.py`, `chunking.py`, `merge.py`, `validate.py`, `timecodes.py`)
 - `llm/` (`client.py`, `scan.py`, `refine.py`, `judge.py`, `cache.py`, `budget.py`, `schemas.py`, `prompts.py`)
-- `video/` (`ffmpeg.py`, `cut.py`, `snap.py`)
-- `export/` (`manifest.py`)
+- `video/` (`ffmpeg.py`, `cut.py`, `snap.py`, `layouts.py`, `render.py`, `template.py`, `subtitles.py`)
+- `export/` (`manifest.py`, `capcut.py`)
 - `scripts/` (`calibrate.py`, `eval.py`)
 
 Допущения: [docs/DECISIONS.md](docs/DECISIONS.md).

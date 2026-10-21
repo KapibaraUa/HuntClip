@@ -81,6 +81,7 @@
     btnAddMomentModal: document.getElementById('btn-add-moment-modal'),
     acceptedClipsCount: document.getElementById('accepted-clips-count'),
     selectRenderLayout: document.getElementById('select-render-layout'),
+    checkboxCapcutExport: document.getElementById('checkbox-capcut-export'),
     btnTriggerRender: document.getElementById('btn-trigger-render'),
     candidatesTotalBadge: document.getElementById('candidates-total-badge'),
     candidatesScrollList: document.getElementById('candidates-scroll-list'),
@@ -824,6 +825,7 @@
         body: JSON.stringify({
           selected_candidate_ids: accepted.map((c) => c.id),
           layout: el.selectRenderLayout ? el.selectRenderLayout.value : 'original',
+          capcut_export: el.checkboxCapcutExport ? el.checkboxCapcutExport.checked : false,
         }),
       });
 
@@ -937,10 +939,13 @@
             <a href="${clip.download_url}" class="btn btn-primary btn-sm" download>
               <span>⬇ Скачать MP4</span>
             </a>
+            <a href="${clip.capcut_download_url || `/api/clips/${clip.id}/capcut/download`}" class="btn btn-secondary btn-sm" download title="Скачать черновик для CapCut Desktop">
+              <span>🎬 CapCut (.zip)</span>
+            </a>
             <button class="btn btn-secondary btn-sm" onclick="window.copyText('${escapeHtml(
               clip.manifest.title || ''
             )}')">
-              <span>📋 Копировать заголовок</span>
+              <span>📋 Заголовок</span>
             </button>
           </div>
         </div>
