@@ -145,8 +145,13 @@ def create_desktop_shortcut(
     shortcut_path = desktop_dir / shortcut_name
 
     assets_dir = project_root / "assets"
-    icon_path = assets_dir / "icon.ico"
+    icon_path = assets_dir / "cliphunter.ico"
     generate_desktop_icon(icon_path)
+    # Also keep icon.ico in sync
+    try:
+        (assets_dir / "icon.ico").write_bytes(icon_path.read_bytes())
+    except Exception:
+        pass
 
     # Launcher batch file
     bat_path = project_root / "ClipHunter.bat"
@@ -165,16 +170,28 @@ WshShell.Run "uv run cliphunter desktop", 0, False
 """
     vbs_path.write_text(vbs_content, encoding="utf-8")
 
-    # Generate shortcut via PowerShell WScript.Shell COM
+    # Unlink existing shortcut to ensure clean cache refresh
+    if shortcut_path.exists():
+        try:
+            shortcut_path.unlink()
+        except Exception:
+            pass
+
+    icon_win = str(icon_path.resolve())
+    shortcut_win = str(shortcut_path.resolve())
+    vbs_win = str(vbs_path.resolve())
+    root_win = str(project_root.resolve())
+
+    # Generate shortcut via PowerShell WScript.Shell COM using native Windows backslashes
     ps_shortcut = f"""
 $WshShell = New-Object -ComObject WScript.Shell
-$Shortcut = $WshShell.CreateShortcut('{shortcut_path.as_posix()}')
+$Shortcut = $WshShell.CreateShortcut('{shortcut_win}')
 $Shortcut.TargetPath = 'wscript.exe'
-$Shortcut.Arguments = '"{vbs_path.as_posix()}"'
-$Shortcut.WorkingDirectory = '{project_root.as_posix()}'
+$Shortcut.Arguments = '"{vbs_win}"'
+$Shortcut.WorkingDirectory = '{root_win}'
 $Shortcut.Description = 'ClipHunter - ИИ нарезчик хайлайтов и клипов со стримов'
-if (Test-Path '{icon_path.as_posix()}') {{
-    $Shortcut.IconLocation = '{icon_path.as_posix()}, 0'
+if (Test-Path '{icon_win}') {{
+    $Shortcut.IconLocation = '{icon_win},0'
 }}
 $Shortcut.Save()
 """
@@ -184,6 +201,13 @@ $Shortcut.Save()
         capture_output=True,
         timeout=10,
     )
+
+    # Invalidate Windows Shell icon cache so Explorer updates icon immediately
+    try:
+        import ctypes
+        ctypes.windll.shell32.SHChangeNotify(0x08000000, 0x0000, None, None)
+    except Exception:
+        pass
 
     log.info("Created desktop shortcut at %s", shortcut_path)
     return shortcut_path
