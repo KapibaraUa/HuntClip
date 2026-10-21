@@ -84,9 +84,19 @@
     videoSource: document.getElementById('video-source'),
     scrubberBar: document.getElementById('scrubber-bar'),
     scrubberProgress: document.getElementById('scrubber-progress'),
+    playheadNeedle: document.getElementById('playhead-needle'),
     scrubberMarkersLayer: document.getElementById('scrubber-markers-layer'),
     playerCurrentTime: document.getElementById('player-current-time'),
     playerTotalDuration: document.getElementById('player-total-duration'),
+    btnPlayerPlayToggle: document.getElementById('btn-player-play-toggle'),
+    transportPlayIcon: document.getElementById('transport-play-icon'),
+    transportPauseIcon: document.getElementById('transport-pause-icon'),
+    btnPlayerPrevCand: document.getElementById('btn-player-prev-cand'),
+    btnPlayerNextCand: document.getElementById('btn-player-next-cand'),
+    btnPlayerNudgeBack1s: document.getElementById('btn-player-nudge-back-1s'),
+    btnPlayerNudgeFwd1s: document.getElementById('btn-player-nudge-fwd-1s'),
+    videoPlayerWrapper: document.getElementById('video-player-wrapper'),
+    aspectPills: document.querySelectorAll('.aspect-pill'),
     btnAddMomentModal: document.getElementById('btn-add-moment-modal'),
     acceptedClipsCount: document.getElementById('accepted-clips-count'),
     selectRenderLayout: document.getElementById('select-render-layout'),
@@ -655,12 +665,133 @@
     el.playerTotalDuration.textContent = formatSeconds(dur);
 
     const progressPct = (cur / dur) * 100;
-    el.scrubberProgress.style.width = `${progressPct}%`;
+    if (el.scrubberProgress) el.scrubberProgress.style.width = `${progressPct}%`;
+    if (el.playheadNeedle) el.playheadNeedle.style.left = `${progressPct}%`;
   });
 
   el.videoPlayer.addEventListener('loadedmetadata', () => {
     el.playerTotalDuration.textContent = formatSeconds(el.videoPlayer.duration);
     renderScrubberMarkers();
+  });
+
+  // Play / Pause Icon synchronization
+  function updatePlayPauseIcons() {
+    if (!el.transportPlayIcon || !el.transportPauseIcon) return;
+    if (el.videoPlayer.paused) {
+      el.transportPlayIcon.style.display = 'block';
+      el.transportPauseIcon.style.display = 'none';
+    } else {
+      el.transportPlayIcon.style.display = 'none';
+      el.transportPauseIcon.style.display = 'block';
+    }
+  }
+
+  el.videoPlayer.addEventListener('play', updatePlayPauseIcons);
+  el.videoPlayer.addEventListener('pause', updatePlayPauseIcons);
+
+  if (el.btnPlayerPlayToggle) {
+    el.btnPlayerPlayToggle.addEventListener('click', () => {
+      if (el.videoPlayer.paused) {
+        el.videoPlayer.play();
+      } else {
+        el.videoPlayer.pause();
+      }
+    });
+  }
+
+  // CapCut Transport Prev/Next Candidate Seeker
+  if (el.btnPlayerPrevCand) {
+    el.btnPlayerPrevCand.addEventListener('click', () => {
+      if (state.candidates.length === 0) return;
+      const curIdx = state.candidates.findIndex((c) => c.id === state.activeCandidateId);
+      const nextIdx = curIdx <= 0 ? state.candidates.length - 1 : curIdx - 1;
+      seekPlayerToCandidate(state.candidates[nextIdx].id);
+    });
+  }
+
+  if (el.btnPlayerNextCand) {
+    el.btnPlayerNextCand.addEventListener('click', () => {
+      if (state.candidates.length === 0) return;
+      const curIdx = state.candidates.findIndex((c) => c.id === state.activeCandidateId);
+      const nextIdx = (curIdx < 0 || curIdx >= state.candidates.length - 1) ? 0 : curIdx + 1;
+      seekPlayerToCandidate(state.candidates[nextIdx].id);
+    });
+  }
+
+  if (el.btnPlayerNudgeBack1s) {
+    el.btnPlayerNudgeBack1s.addEventListener('click', () => {
+      el.videoPlayer.currentTime = Math.max(0, el.videoPlayer.currentTime - 1);
+    });
+  }
+
+  if (el.btnPlayerNudgeFwd1s) {
+    el.btnPlayerNudgeFwd1s.addEventListener('click', () => {
+      el.videoPlayer.currentTime = Math.min(el.videoPlayer.duration || Infinity, el.videoPlayer.currentTime + 1);
+    });
+  }
+
+  // CapCut Aspect Ratio Switcher
+  if (el.aspectPills && el.aspectPills.length > 0) {
+    el.aspectPills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        el.aspectPills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        const aspect = pill.dataset.aspect;
+        if (aspect === '16x9') {
+          if (el.videoPlayerWrapper) el.videoPlayerWrapper.style.aspectRatio = '16 / 9';
+          if (el.selectRenderLayout) el.selectRenderLayout.value = 'original';
+        } else if (aspect === '9x16') {
+          if (el.videoPlayerWrapper) el.videoPlayerWrapper.style.aspectRatio = '9 / 16';
+          if (el.selectRenderLayout) el.selectRenderLayout.value = 'center_crop_9x16';
+        } else if (aspect === 'blur') {
+          if (el.videoPlayerWrapper) el.videoPlayerWrapper.style.aspectRatio = '9 / 16';
+          if (el.selectRenderLayout) el.selectRenderLayout.value = 'blur_fit_9x16';
+        } else if (aspect === 'split') {
+          if (el.videoPlayerWrapper) el.videoPlayerWrapper.style.aspectRatio = '9 / 16';
+          if (el.selectRenderLayout) el.selectRenderLayout.value = 'facecam_top_game_bottom_9x16';
+        }
+      });
+    });
+  }
+
+  // Sync aspect pills when selectRenderLayout changes
+  if (el.selectRenderLayout) {
+    el.selectRenderLayout.addEventListener('change', () => {
+      const val = el.selectRenderLayout.value;
+      let targetAspect = '16x9';
+      if (val === 'center_crop_9x16') targetAspect = '9x16';
+      else if (val === 'blur_fit_9x16') targetAspect = 'blur';
+      else if (val === 'facecam_top_game_bottom_9x16') targetAspect = 'split';
+
+      if (el.aspectPills) {
+        el.aspectPills.forEach((p) => {
+          p.classList.toggle('active', p.dataset.aspect === targetAspect);
+        });
+      }
+      if (el.videoPlayerWrapper) {
+        el.videoPlayerWrapper.style.aspectRatio = (targetAspect === '16x9') ? '16 / 9' : '9 / 16';
+      }
+    });
+  }
+
+  // Keyboard Shortcuts (Space: Play/Pause, J: -1s, K: Pause, L: +1s)
+  window.addEventListener('keydown', (e) => {
+    // Skip if user is typing in form inputs, textareas, or command palette
+    const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if (state.activeScreen !== 'screen-review') return;
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (el.videoPlayer.paused) el.videoPlayer.play();
+      else el.videoPlayer.pause();
+    } else if (e.code === 'KeyJ') {
+      el.videoPlayer.currentTime = Math.max(0, el.videoPlayer.currentTime - 1);
+    } else if (e.code === 'KeyK') {
+      el.videoPlayer.pause();
+    } else if (e.code === 'KeyL') {
+      el.videoPlayer.currentTime = Math.min(el.videoPlayer.duration || Infinity, el.videoPlayer.currentTime + 1);
+    }
   });
 
   // Clicking scrubber bar seeks player
@@ -701,12 +832,18 @@
   }
 
   // Nudge controls in player subcontrols
-  document.getElementById('btn-nudge-back-5s').onclick = () => (el.videoPlayer.currentTime -= 5);
-  document.getElementById('btn-nudge-back-1s').onclick = () => (el.videoPlayer.currentTime -= 1);
-  document.getElementById('btn-nudge-back-01s').onclick = () => (el.videoPlayer.currentTime -= 0.1);
-  document.getElementById('btn-nudge-fwd-01s').onclick = () => (el.videoPlayer.currentTime += 0.1);
-  document.getElementById('btn-nudge-fwd-1s').onclick = () => (el.videoPlayer.currentTime += 1);
-  document.getElementById('btn-nudge-fwd-5s').onclick = () => (el.videoPlayer.currentTime += 5);
+  const btnNudgeBack5s = document.getElementById('btn-nudge-back-5s');
+  if (btnNudgeBack5s) btnNudgeBack5s.onclick = () => (el.videoPlayer.currentTime -= 5);
+  const btnNudgeBack1s = document.getElementById('btn-nudge-back-1s');
+  if (btnNudgeBack1s) btnNudgeBack1s.onclick = () => (el.videoPlayer.currentTime -= 1);
+  const btnNudgeBack01s = document.getElementById('btn-nudge-back-01s');
+  if (btnNudgeBack01s) btnNudgeBack01s.onclick = () => (el.videoPlayer.currentTime -= 0.1);
+  const btnNudgeFwd01s = document.getElementById('btn-nudge-fwd-01s');
+  if (btnNudgeFwd01s) btnNudgeFwd01s.onclick = () => (el.videoPlayer.currentTime += 0.1);
+  const btnNudgeFwd1s = document.getElementById('btn-nudge-fwd-1s');
+  if (btnNudgeFwd1s) btnNudgeFwd1s.onclick = () => (el.videoPlayer.currentTime += 1);
+  const btnNudgeFwd5s = document.getElementById('btn-nudge-fwd-5s');
+  if (btnNudgeFwd5s) btnNudgeFwd5s.onclick = () => (el.videoPlayer.currentTime += 5);
 
   // Filter chips (All / Accepted / Rejected)
   el.filterChips.forEach((chip) => {
@@ -1574,6 +1711,69 @@
         run: () => {
           const btn = document.getElementById('btn-trigger-cleanup');
           if (btn) btn.click();
+        },
+      },
+      {
+        id: 'capcut-toggle-aspect-9x16',
+        title: 'Формат кадра: 9:16 Shorts / Reels (Центральный кроп)',
+        badge: 'Формат',
+        icon: '<rect x="6" y="2" width="12" height="20" rx="2"/>',
+        run: () => {
+          switchScreen('screen-review');
+          const btn = document.getElementById('btn-aspect-9x16');
+          if (btn) btn.click();
+        },
+      },
+      {
+        id: 'capcut-toggle-aspect-16x9',
+        title: 'Формат кадра: 16:9 Исходный горизонтальный',
+        badge: 'Формат',
+        icon: '<rect x="2" y="5" width="20" height="14" rx="2"/>',
+        run: () => {
+          switchScreen('screen-review');
+          const btn = document.getElementById('btn-aspect-16x9');
+          if (btn) btn.click();
+        },
+      },
+      {
+        id: 'capcut-toggle-aspect-blur',
+        title: 'Формат кадра: 9:16 Размытый фон (Blur-fit)',
+        badge: 'Формат',
+        icon: '<rect x="6" y="2" width="12" height="20" rx="2"/><line x1="2" y1="2" x2="22" y2="22"/>',
+        run: () => {
+          switchScreen('screen-review');
+          const btn = document.getElementById('btn-aspect-blur');
+          if (btn) btn.click();
+        },
+      },
+      {
+        id: 'capcut-next-cand',
+        title: 'Перейти к следующему кандидату [L]',
+        badge: 'Монтаж',
+        icon: '<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>',
+        run: () => {
+          switchScreen('screen-review');
+          if (el.btnPlayerNextCand) el.btnPlayerNextCand.click();
+        },
+      },
+      {
+        id: 'capcut-prev-cand',
+        title: 'Перейти к предыдущему кандидату [J]',
+        badge: 'Монтаж',
+        icon: '<polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/>',
+        run: () => {
+          switchScreen('screen-review');
+          if (el.btnPlayerPrevCand) el.btnPlayerPrevCand.click();
+        },
+      },
+      {
+        id: 'capcut-render-trigger',
+        title: 'Запустить рендер всех отобранных клипов',
+        badge: 'Рендер',
+        icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        run: () => {
+          switchScreen('screen-review');
+          if (el.btnTriggerRender) el.btnTriggerRender.click();
         },
       },
     ];

@@ -21,7 +21,7 @@
         </div>
         <div class="brand-text">
           <span class="brand-name">ClipHunter</span>
-          <span class="brand-badge">AI Studio</span>
+          <span class="brand-badge">CapCut Studio</span>
           <span class="badge badge-desktop" id="badge-desktop-mode" style="display: none;">
             <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             <span>Desktop</span>
@@ -365,48 +365,115 @@
         </div>
       </section>
 
-      <!-- SCREEN 3: REVIEW -->
+      <!-- SCREEN 3: REVIEW (CapCut Desktop Workbench) -->
       <section id="screen-review" class="view-screen">
         <div class="review-layout">
-          <!-- Video Player Column -->
+          <!-- Video Player Column & Multi-Track Timeline -->
           <div class="player-column">
-            <div class="bento-card player-bento-card">
-              <div class="video-wrapper">
+            <div class="player-bento-card">
+              
+              <!-- CapCut Aspect Ratio Selector Bar -->
+              <div class="aspect-ratio-toolbar">
+                <span class="aspect-toolbar-label">Формат кадра</span>
+                <div class="aspect-pill-group">
+                  <button type="button" class="aspect-pill active" id="btn-aspect-16x9" data-aspect="16x9">16:9 Исходный</button>
+                  <button type="button" class="aspect-pill" id="btn-aspect-9x16" data-aspect="9x16">9:16 Shorts</button>
+                  <button type="button" class="aspect-pill" id="btn-aspect-blur" data-aspect="blur">9:16 Размытие</button>
+                  <button type="button" class="aspect-pill" id="btn-aspect-split" data-aspect="split">9:16 Сплит</button>
+                </div>
+              </div>
+
+              <!-- Main Video Stage Monitor -->
+              <div class="video-wrapper" id="video-player-wrapper">
                 <video id="review-video-player" controls preload="metadata" playsinline>
                   <source id="video-source" src="" type="video/mp4">
                   Ваш браузер не поддерживает HTML5 видео.
                 </video>
               </div>
 
-              <!-- Candidate Scrubbing Bar Overlay -->
-              <div class="timeline-scrubber" id="timeline-scrubber">
-                <div class="scrubber-bar" id="scrubber-bar">
-                  <div class="scrubber-progress" id="scrubber-progress"></div>
-                  <!-- Candidate ranges will be rendered here dynamically -->
-                  <div id="scrubber-markers-layer" class="scrubber-markers"></div>
+              <!-- CapCut Studio Transport Bar -->
+              <div class="studio-transport-bar">
+                <div class="transport-left">
+                  <button type="button" class="transport-btn" id="btn-player-prev-cand" title="Предыдущий момент">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                  </button>
+                  <button type="button" class="transport-btn" id="btn-player-nudge-back-1s" title="Назад 1 секунда">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+                  </button>
+                  <button type="button" class="transport-play-btn" id="btn-player-play-toggle" title="Воспроизведение / Пауза (Space)">
+                    <svg id="transport-play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                    <svg id="transport-pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  </button>
+                  <button type="button" class="transport-btn" id="btn-player-nudge-fwd-1s" title="Вперед 1 секунда">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                  </button>
+                  <button type="button" class="transport-btn" id="btn-player-next-cand" title="Следующий момент">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                  </button>
                 </div>
-                <div class="scrubber-timecodes">
+
+                <div class="transport-timecode">
                   <span id="player-current-time" class="mono-ts">00:00.0</span>
+                  <span class="ts-separator">/</span>
                   <span id="player-total-duration" class="mono-ts">00:00.0</span>
                 </div>
-              </div>
 
-              <!-- Quick player controls -->
-              <div class="player-subcontrols">
-                <div class="time-nudge-group">
-                  <span class="nudge-label">Перемотка:</span>
-                  <button class="btn btn-ghost btn-xs" id="btn-nudge-back-5s">-5s</button>
-                  <button class="btn btn-ghost btn-xs" id="btn-nudge-back-1s">-1s</button>
-                  <button class="btn btn-ghost btn-xs" id="btn-nudge-back-01s">-0.1s</button>
-                  <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-01s">+0.1s</button>
-                  <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-1s">+1s</button>
-                  <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-5s">+5s</button>
-                </div>
-                <div>
+                <div class="transport-right">
                   <button class="btn btn-secondary btn-sm" id="btn-add-moment-modal">
                     <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     <span>Добавить момент</span>
                   </button>
+                </div>
+              </div>
+
+              <!-- CapCut Multi-Track Timeline Dock -->
+              <div class="capcut-timeline-dock" id="capcut-timeline-dock">
+                <div class="timeline-ruler" id="timeline-ruler">
+                  <span class="ruler-track-time">00:00</span>
+                  <span class="ruler-track-time">02:00</span>
+                  <span class="ruler-track-time">04:00</span>
+                  <span class="ruler-track-time">06:00</span>
+                  <span class="ruler-track-time">08:00</span>
+                  <span class="ruler-track-time">10:00</span>
+                </div>
+
+                <div class="timeline-tracks-body">
+                  <div class="timeline-track-header-col">
+                    <div class="track-header-label">
+                      <svg class="track-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/></svg>
+                      <span>V1 Видео</span>
+                    </div>
+                    <div class="track-header-label ai-label">
+                      <svg class="track-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      <span>AI Клипы</span>
+                    </div>
+                  </div>
+
+                  <div class="timeline-scrubber" id="timeline-scrubber">
+                    <div class="scrubber-bar" id="scrubber-bar">
+                      <div class="scrubber-progress" id="scrubber-progress"></div>
+                      <div class="playhead-needle" id="playhead-needle"></div>
+                      <div id="scrubber-markers-layer" class="scrubber-markers"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Timeline Scrubber Footer Controls -->
+                <div class="player-subcontrols">
+                  <div class="time-nudge-group">
+                    <span class="nudge-label">Сдвиг кадра:</span>
+                    <button class="btn btn-ghost btn-xs" id="btn-nudge-back-5s">-5s</button>
+                    <button class="btn btn-ghost btn-xs" id="btn-nudge-back-1s">-1s</button>
+                    <button class="btn btn-ghost btn-xs" id="btn-nudge-back-01s">-0.1s</button>
+                    <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-01s">+0.1s</button>
+                    <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-1s">+1s</button>
+                    <button class="btn btn-ghost btn-xs" id="btn-nudge-fwd-5s">+5s</button>
+                  </div>
+                  <div class="timeline-legend">
+                    <span class="legend-item"><span class="legend-swatch cyan"></span> Активный</span>
+                    <span class="legend-item"><span class="legend-swatch green"></span> Принят</span>
+                    <span class="legend-item"><span class="legend-swatch red"></span> Отклонён</span>
+                  </div>
                 </div>
               </div>
             </div>
