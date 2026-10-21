@@ -1,81 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <defs>
-    <!-- Background Surface Gradient -->
-    <linearGradient id="prism-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#151C28"/>
-      <stop offset="100%" stop-color="#0B0E14"/>
+    <!-- CapCut style deep obsidian background -->
+    <linearGradient id="bw-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141418"/>
+      <stop offset="100%" stop-color="#050507"/>
     </linearGradient>
 
-    <!-- Vibrant Indigo to Violet Glow -->
-    <linearGradient id="prism-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366F1"/>
-      <stop offset="50%" stop-color="#8B5CF6"/>
-      <stop offset="100%" stop-color="#EC4899"/>
+    <!-- Subtle chrome / silver edge highlight -->
+    <linearGradient id="bw-rim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
     </linearGradient>
 
-    <!-- Cyan to Electric Indigo -->
-    <linearGradient id="prism-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06B6D4"/>
-      <stop offset="100%" stop-color="#6366F1"/>
+    <!-- Crisp brilliant white -->
+    <linearGradient id="bw-white" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EDEDED"/>
     </linearGradient>
-
-    <!-- Facet Top Light -->
-    <linearGradient id="facet-light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#818CF8"/>
-      <stop offset="100%" stop-color="#4F46E5"/>
-    </linearGradient>
-
-    <!-- Facet Bottom Shadow -->
-    <linearGradient id="facet-dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366F1"/>
-      <stop offset="100%" stop-color="#312E81"/>
-    </linearGradient>
-
-    <!-- Gaussian Blur for Glow Effect -->
-    <filter id="prism-shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="24" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
   </defs>
 
-  <!-- Squircle Base Frame -->
-  <rect x="28" y="28" width="456" height="456" rx="112" fill="url(#prism-bg)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="3"/>
-  <rect x="30" y="30" width="452" height="452" rx="110" fill="none" stroke="url(#prism-cyan)" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Deep Black Squircle Icon Frame -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bw-bg)" stroke="url(#bw-rim)" stroke-width="2.5"/>
 
-  <!-- Hunter Radar Circles -->
-  <circle cx="256" cy="256" r="164" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2"/>
-  <circle cx="256" cy="256" r="118" stroke="rgba(99, 102, 241, 0.25)" stroke-width="2" stroke-dasharray="10 8"/>
-  <circle cx="256" cy="256" r="68" stroke="rgba(6, 182, 212, 0.2)" stroke-width="1.5"/>
+  <!-- Subtle Hunter Reticle Circles (Monochrome Wireframe) -->
+  <circle cx="256" cy="256" r="156" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="98" stroke="rgba(255, 255, 255, 0.14)" stroke-width="1.5" stroke-dasharray="8 6"/>
 
-  <!-- Hunter Crosshair Ticks -->
-  <line x1="256" y1="72" x2="256" y2="102" stroke="#6366F1" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="256" y1="410" x2="256" y2="440" stroke="#6366F1" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="72" y1="256" x2="102" y2="256" stroke="#6366F1" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="410" y1="256" x2="440" y2="256" stroke="#6366F1" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Minimal Precision Crosshair Ticks (CapCut Pure White) -->
+  <line x1="256" y1="78" x2="256" y2="108" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="256" y1="404" x2="256" y2="434" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="78" y1="256" x2="108" y2="256" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="404" y1="256" x2="434" y2="256" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
 
-  <!-- Radar Angle Markers (45 deg) -->
-  <line x1="140" y1="140" x2="154" y2="154" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2" stroke-linecap="round"/>
-  <line x1="372" y1="140" x2="358" y2="154" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2" stroke-linecap="round"/>
-  <line x1="140" y1="372" x2="154" y2="358" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2" stroke-linecap="round"/>
-  <line x1="372" y1="372" x2="358" y2="358" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Bold "C" (Clip) Dynamic Ribbon in Pure White -->
+  <path d="M 236 148 A 114 114 0 1 0 236 364" stroke="url(#bw-white)" stroke-width="26" stroke-linecap="round"/>
 
-  <!-- Ambient Glow Behind Triangle -->
-  <polygon points="208,162 364,256 208,350" fill="url(#prism-glow)" opacity="0.35" filter="url(#prism-shadow)"/>
+  <!-- Sleek Play Triangle Arrow with Negative Space Notch -->
+  <polygon points="230,178 358,256 230,334" fill="url(#bw-white)"/>
 
-  <!-- Faceted Play Mark (3D Glass Prism) -->
-  <!-- Top Facet -->
-  <polygon points="208,162 364,256 208,256" fill="url(#facet-light)"/>
-  <!-- Bottom Facet -->
-  <polygon points="208,256 364,256 208,350" fill="url(#facet-dark)"/>
+  <!-- Negative Space Precision Cut / Gap -->
+  <path d="M 230 178 L 358 256 L 230 334 Z" stroke="#050507" stroke-width="5" stroke-linejoin="round"/>
 
-  <!-- Internal Specular Highlight Line -->
-  <line x1="208" y1="256" x2="364" y2="256" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.4" stroke-linecap="round"/>
-  <line x1="208" y1="162" x2="364" y2="256" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.5"/>
-
-  <!-- Target Beacon (Crosshair Focus) -->
-  <circle cx="364" cy="256" r="14" fill="#06B6D4" stroke="#FFFFFF" stroke-width="3.5"/>
-  <circle cx="364" cy="256" r="6" fill="#FFFFFF"/>
-
-  <!-- Hunter Slash Frame Guides -->
-  <path d="M184 140 L196 128 L384 242 L384 270 L196 384 L184 372" stroke="url(#prism-cyan)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <!-- Central Hunter Target Point (CapCut High-Contrast Focal Dot) -->
+  <circle cx="358" cy="256" r="14" fill="#FFFFFF" stroke="#050507" stroke-width="4"/>
+  <circle cx="358" cy="256" r="5" fill="#050507"/>
 </svg>

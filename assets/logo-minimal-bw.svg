@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- CapCut style deep obsidian background -->
+    <linearGradient id="bw-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141418"/>
+      <stop offset="100%" stop-color="#050507"/>
+    </linearGradient>
+
+    <!-- Subtle chrome / silver edge highlight -->
+    <linearGradient id="bw-rim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+    </linearGradient>
+
+    <!-- Crisp brilliant white -->
+    <linearGradient id="bw-white" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EDEDED"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Black Squircle Icon Frame -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bw-bg)" stroke="url(#bw-rim)" stroke-width="2.5"/>
+
+  <!-- Subtle Hunter Reticle Circles (Monochrome Wireframe) -->
+  <circle cx="256" cy="256" r="156" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="98" stroke="rgba(255, 255, 255, 0.14)" stroke-width="1.5" stroke-dasharray="8 6"/>
+
+  <!-- Minimal Precision Crosshair Ticks (CapCut Pure White) -->
+  <line x1="256" y1="78" x2="256" y2="108" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="256" y1="404" x2="256" y2="434" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="78" y1="256" x2="108" y2="256" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="404" y1="256" x2="434" y2="256" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Bold "C" (Clip) Dynamic Ribbon in Pure White -->
+  <path d="M 236 148 A 114 114 0 1 0 236 364" stroke="url(#bw-white)" stroke-width="26" stroke-linecap="round"/>
+
+  <!-- Sleek Play Triangle Arrow with Negative Space Notch -->
+  <polygon points="230,178 358,256 230,334" fill="url(#bw-white)"/>
+
+  <!-- Negative Space Precision Cut / Gap -->
+  <path d="M 230 178 L 358 256 L 230 334 Z" stroke="#050507" stroke-width="5" stroke-linejoin="round"/>
+
+  <!-- Central Hunter Target Point (CapCut High-Contrast Focal Dot) -->
+  <circle cx="358" cy="256" r="14" fill="#FFFFFF" stroke="#050507" stroke-width="4"/>
+  <circle cx="358" cy="256" r="5" fill="#050507"/>
+</svg>

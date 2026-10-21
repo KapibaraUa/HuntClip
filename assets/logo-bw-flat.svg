@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Minimal Outer Target Frame -->
+  <circle cx="256" cy="256" r="156" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="2.5"/>
+  <circle cx="256" cy="256" r="98" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Precision Crosshair Ticks -->
+  <line x1="256" y1="78" x2="256" y2="108" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <line x1="256" y1="404" x2="256" y2="434" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <line x1="78" y1="256" x2="108" y2="256" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <line x1="404" y1="256" x2="434" y2="256" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Bold "C" (Clip) Ribbon Arc -->
+  <path d="M 236 148 A 114 114 0 1 0 236 364" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+
+  <!-- Play Arrow -->
+  <polygon points="230,178 358,256 230,334" fill="#FFFFFF"/>
+
+  <!-- Focal Point -->
+  <circle cx="358" cy="256" r="14" fill="#FFFFFF"/>
+</svg>
