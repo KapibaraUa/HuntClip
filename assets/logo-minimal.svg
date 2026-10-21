@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Background Frame Gradient -->
+    <linearGradient id="min-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111622"/>
+      <stop offset="100%" stop-color="#080B10"/>
+    </linearGradient>
+
+    <!-- Indigo-Violet Gradient -->
+    <linearGradient id="min-indigo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+
+    <!-- Accent Emerald/Cyan -->
+    <linearGradient id="min-emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base Frame -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#min-bg)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2"/>
+
+  <!-- Minimal Outer Target Frame -->
+  <circle cx="256" cy="256" r="148" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2.5"/>
+  <circle cx="256" cy="256" r="92" stroke="rgba(99, 102, 241, 0.25)" stroke-width="2"/>
+
+  <!-- Precision Radar Hash Ticks -->
+  <line x1="256" y1="84" x2="256" y2="114" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+  <line x1="256" y1="398" x2="256" y2="428" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+  <line x1="84" y1="256" x2="114" y2="256" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+  <line x1="398" y1="256" x2="428" y2="256" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Intersecting "C" and Play Arrow -->
+  <!-- Arc of the "C" (Clip) -->
+  <path d="M 230 156 A 110 110 0 1 0 230 356" stroke="url(#min-indigo)" stroke-width="22" stroke-linecap="round"/>
+
+  <!-- Play Arrow (Hunter Target) -->
+  <polygon points="230,186 350,256 230,326" fill="url(#min-indigo)"/>
+
+  <!-- Emerald Focus Point -->
+  <circle cx="350" cy="256" r="12" fill="url(#min-emerald)" stroke="#080B10" stroke-width="3"/>
+  <circle cx="350" cy="256" r="4" fill="#FFFFFF"/>
+</svg>
