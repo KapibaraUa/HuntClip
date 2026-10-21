@@ -13,6 +13,7 @@ from cliphunter.db.models import ClipORM
 from cliphunter.db.repo import (
     get_candidates,
     get_job,
+    get_profile,
     save_clip,
     sync_job_candidates,
     update_job_progress,
@@ -33,6 +34,7 @@ from cliphunter.models import (
     ChunkStatus,
     Job,
     JobParams,
+    Profile,
     Source,
     SourceKind,
     StageEnum,
@@ -40,8 +42,8 @@ from cliphunter.models import (
 from cliphunter.pipeline.chunking import plan_chunks
 from cliphunter.pipeline.merge import merge_and_dedupe
 from cliphunter.pipeline.stages import load_profile
-from cliphunter.video.cut import cut_candidate
 from cliphunter.video.ffmpeg import proxy_cmd, run
+from cliphunter.video.render import render_candidate
 
 log = logging.getLogger(__name__)
 
@@ -294,9 +296,13 @@ class JobTaskManager:
         self,
         job_id: str,
         selected_candidate_ids: list[str] | None = None,
+        layout: str = "original",
+        template: str = "default",
     ) -> list[ClipORM]:
-        """Renders accepted candidates into mp4 clips and saves them to DB."""
-        await self._broadcast_stage(job_id, "s7_cut", "Rendering final clips with FFmpeg...")
+        """Renders accepted candidates into mp4 clips with layout & template and saves to DB."""
+        await self._broadcast_stage(
+            job_id, "s7_cut", f"Rendering final clips with layout '{layout}'..."
+        )
 
         async with self.db.session_factory() as session:
             job_orm = await get_job(session, job_id)
@@ -309,6 +315,21 @@ class JobTaskManager:
 
             out_dir = Path(job_orm.output_dir or f"data/jobs/{job_id}/out")
             out_dir.mkdir(parents=True, exist_ok=True)
+
+            profile: Profile | None = None
+            if job_orm.profile_id:
+                p_orm = await get_profile(session, job_orm.profile_id)
+                if p_orm:
+                    profile = Profile(
+                        name=p_orm.name,
+                        language=p_orm.language,
+                        game=p_orm.game,
+                        facecam_rect=p_orm.facecam_rect,
+                        gameplay_rect=p_orm.gameplay_rect,
+                        clip_min_s=p_orm.clip_min_s,
+                        clip_max_s=p_orm.clip_max_s,
+                        prompt_addon=p_orm.prompt_addon,
+                    )
 
             cands_orm = await get_candidates(session, job_id)
             to_render = [
@@ -337,21 +358,24 @@ class JobTaskManager:
                     title_options=c_orm.data.get("title_options", []),
                 )
 
-                out_clip_path = cut_candidate(
+                out_clip_path = render_candidate(
                     candidate=cand,
                     src=src_path,
                     out_dir=out_dir,
                     idx=idx,
+                    layout=layout,
+                    profile=profile,
                     settings=self.settings,
+                    title=cand.working_title,
                 )
 
                 clip_orm = ClipORM(
-                    id=f"clip_{c_orm.id}",
+                    id=f"clip_{c_orm.id}_{layout}",
                     job_id=job_id,
                     candidate_id=c_orm.id,
                     path=str(out_clip_path),
-                    layout="original",
-                    template="default",
+                    layout=layout,
+                    template=template,
                     duration_s=cand.duration_s,
                     manifest={
                         "candidate_id": cand.id,
@@ -361,6 +385,8 @@ class JobTaskManager:
                         "duration_s": cand.duration_s,
                         "score": cand.score,
                         "title_options": cand.title_options,
+                        "layout": layout,
+                        "template": template,
                     },
                 )
                 await save_clip(session, clip_orm)

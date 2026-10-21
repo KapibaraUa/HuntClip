@@ -823,6 +823,7 @@
         method: 'POST',
         body: JSON.stringify({
           selected_candidate_ids: accepted.map((c) => c.id),
+          layout: el.selectRenderLayout ? el.selectRenderLayout.value : 'original',
         }),
       });
 

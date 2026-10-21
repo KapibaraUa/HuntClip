@@ -42,6 +42,8 @@ class AddCandidateRequest(BaseModel):
 
 class RenderJobRequest(BaseModel):
     selected_candidate_ids: list[str] | None = None
+    layout: str = "original"
+    template: str = "default"
 
 
 def _cand_to_dict(c: CandidateORM) -> dict[str, Any]:
@@ -158,9 +160,16 @@ async def render_job_candidates(
         raise HTTPException(status_code=404, detail="Job not found")
 
     selected_ids = req.selected_candidate_ids if req else None
+    layout = req.layout if req else "original"
+    template = req.template if req else "default"
 
     # Trigger render in background or await
-    clips = await task_manager.render_job(job_id, selected_candidate_ids=selected_ids)
+    clips = await task_manager.render_job(
+        job_id,
+        selected_candidate_ids=selected_ids,
+        layout=layout,
+        template=template,
+    )
 
     return {
         "job_id": job_id,
