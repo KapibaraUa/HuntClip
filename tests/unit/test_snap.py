@@ -84,3 +84,14 @@ def test_snap_candidate_boundaries_rejects_negative_or_too_short() -> None:
 
     assert s == 10.0
     assert e == 11.5
+
+
+def test_snap_candidate_boundaries_falls_back_to_scene_cuts() -> None:
+    with (
+        patch("cliphunter.video.snap.detect_silence_points", return_value=[]),
+        patch("cliphunter.video.snap.detect_scene_cuts", side_effect=[[10.3], [24.8]]),
+    ):
+        s, e = snap_candidate_boundaries(10.0, 25.0, Path("dummy.mp4"), max_snap_s=1.0)
+
+    assert s == 10.3
+    assert e == 24.8

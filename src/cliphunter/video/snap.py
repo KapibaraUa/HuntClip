@@ -124,14 +124,19 @@ def snap_candidate_boundaries(
     src: Path,
     max_snap_s: float = 1.0,
 ) -> tuple[float, float]:
-    """Snaps start and end boundaries to nearby silence pauses or scene cuts within max_snap_s."""
-    # Probe audio silence around start and end [-snap, +snap]
+    """Snaps start/end to a nearby speech pause (preferred) or scene cut within max_snap_s."""
     pad = max_snap_s + 0.5
-    start_pts = detect_silence_points(src, start_s - pad, pad * 2)
-    end_pts = detect_silence_points(src, end_s - pad, pad * 2)
 
-    snapped_start = snap_boundary(start_s, start_pts, max_snap_s)
-    snapped_end = snap_boundary(end_s, end_pts, max_snap_s)
+    def _snap(t: float) -> float:
+        silence = detect_silence_points(src, t - pad, pad * 2)
+        snapped = snap_boundary(t, silence, max_snap_s)
+        if snapped != t:
+            return snapped
+        cuts = detect_scene_cuts(src, t - pad, pad * 2)
+        return snap_boundary(t, cuts, max_snap_s)
+
+    snapped_start = _snap(start_s)
+    snapped_end = _snap(end_s)
 
     # Ensure start is strictly before end with at least 1s duration
     if snapped_end - snapped_start < 1.0:

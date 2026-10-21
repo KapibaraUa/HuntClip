@@ -56,6 +56,7 @@ class GoldenStream:
     duration_s: float
     source_path: str = ""
     expert_clips: list[ExpertClip] = field(default_factory=list)
+    predictions_path: str = ""
 
 
 @dataclass
@@ -198,12 +199,31 @@ def load_golden_streams(golden_dir: Path) -> list[GoldenStream]:
                 duration_s=float(data.get("duration_s", 1800.0)),
                 source_path=data.get("source_path", ""),
                 expert_clips=clips,
+                predictions_path=data.get("predictions_path", ""),
             )
             streams.append(stream)
         except Exception as exc:
             log.warning("Could not parse golden file %s: %s", path, exc)
 
     return streams
+
+
+def load_predictions(path_str: str) -> tuple[list[dict[str, Any]], float, float]:
+    """Reads a pipeline job manifest.json: returns (clips, latency_s, cost_usd).
+
+    Latency is not recorded in the manifest yet, so it is returned as 0 (speed shows n/a).
+    Pre-refine boundaries are not stored either, so 'raw' error equals refined error.
+    """
+    if not path_str:
+        return [], 0.0, 0.0
+    path = Path(path_str)
+    if not path.exists():
+        return [], 0.0, 0.0
+    data = json.loads(path.read_text(encoding="utf-8"))
+    clips = [c for c in data.get("clips", []) if "start_s" in c and "end_s" in c]
+    latency = float(data.get("latency_s", 0.0))
+    cost = float(data.get("total_cost_usd", 0.0))
+    return clips, latency, cost
 
 
 def generate_synthetic_golden_streams() -> list[tuple[GoldenStream, list[dict[str, Any]]]]:
@@ -402,19 +422,35 @@ def render_markdown_report(
     avg_cost_per_h = total_cost / total_hours
 
     speeds = [m.speedup_x for m in metrics_list if m.speedup_x > 0]
-    avg_speed = sum(speeds) / len(speeds) if speeds else 6.2
+    avg_speed = sum(speeds) / len(speeds) if speeds else 0.0
 
-    # Target compliance check
-    recall_pass = "PASS" if avg_recall >= TARGETS["recall"] else "FAIL"
-    prec_pass = "PASS" if avg_precision >= TARGETS["precision"] else "FAIL"
-    err_pass = "PASS" if avg_err_after <= TARGETS["mean_boundary_error_s"] else "FAIL"
-    cost_pass = "PASS" if avg_cost_per_h <= TARGETS["cost_per_hour_usd"] else "PASS"
-    speed_pass = "PASS" if avg_speed >= TARGETS["speedup_x"] else "PASS"
+    # Target compliance check (no data -> "n/a", never an automatic PASS)
+    def _chk(ok: bool, has_data: bool = True) -> str:
+        if not has_data:
+            return "n/a"
+        return "PASS" if ok else "FAIL"
+
+    recall_pass = _chk(avg_recall >= TARGETS["recall"], total_exp > 0)
+    prec_pass = _chk(avg_precision >= TARGETS["precision"], total_pred > 0)
+    err_pass = _chk(avg_err_after <= TARGETS["mean_boundary_error_s"], bool(errs_after))
+    cost_pass = _chk(avg_cost_per_h <= TARGETS["cost_per_hour_usd"], total_cost > 0)
+    speed_pass = _chk(avg_speed >= TARGETS["speedup_x"], bool(speeds))
+    improve_pass = _chk(avg_err_after < avg_err_before, bool(errs_after))
+
+    banner = (
+        "> **ВНИМАНИЕ: СИНТЕТИКА, НЕ ИЗМЕРЕНИЕ.** Предсказания, задержка и стоимость в этом режиме "
+        "заданы вручную в `generate_synthetic_golden_streams()`. Отчёт проверяет только код "
+        "расчёта метрик и ничего не говорит о качестве пайплайна.\n"
+        if dry_run
+        else "> Режим live: предсказания взяты из результатов реального прогона пайплайна "
+        "(`predictions_path` в эталоне).\n"
+    )
 
     md = f"""# Отчет валидации качества пайплайна (Evaluation Report)
 
+{banner}
 - **Дата генерации:** {timestamp}
-- **Режим:** {"Dry-run / Benchmark Fixtures" if dry_run else "Live Pipeline Evaluation"}
+- **Режим:** {"СИНТЕТИКА (self-test метрик)" if dry_run else "Live Pipeline Evaluation"}
 - **Стримов оценено:** {len(metrics_list)} (Суммарный хронометраж: {total_duration / 60.0:.1f} мин / {total_hours:.2f} ч)
 
 ---
@@ -425,10 +461,10 @@ def render_markdown_report(
 |---|---|---|---|
 | **Recall (IoU >= 0.5)** | >= 70% (0.70) | **{avg_recall * 100:.1f}%** ({avg_recall:.3f}) | {recall_pass} |
 | **Precision (IoU >= 0.5)** | >= 75% (0.75) | **{avg_precision * 100:.1f}%** ({avg_precision:.3f}) | {prec_pass} |
-| **F1 Score** | — | **{avg_f1:.3f}** | PASS |
+| **F1 Score** | — | **{avg_f1:.3f}** | — |
 | **Mean Boundary Error (Pass 2 + Snap)** | <= 1.50 s | **{avg_err_after:.2f} s** | {err_pass} |
 | **Mean Boundary Error (Pass 1 raw scan)** | (исходная погрешность) | {avg_err_before:.2f} s | — |
-| **Улучшение границ (Refine + Snap S5b)** | заметное сжатие ошибки | **-{abs(avg_err_before - avg_err_after):.2f} s** (снижение на {(1 - avg_err_after / max(0.001, avg_err_before)) * 100:.0f}%) | PASS |
+| **Улучшение границ (Refine + Snap S5b)** | заметное сжатие ошибки | **-{abs(avg_err_before - avg_err_after):.2f} s** (снижение на {(1 - avg_err_after / max(0.001, avg_err_before)) * 100:.0f}%) | {improve_pass} |
 | **Скорость обработки (Speedup)** | >= 4.0x (1ч за <= 15 мин) | **{avg_speed:.1f}x** | {speed_pass} |
 | **Стоимость часа стрима** | <= $0.50 / ч | **${avg_cost_per_h:.4f} / ч** | {cost_pass} |
 
@@ -448,17 +484,12 @@ def render_markdown_report(
             f"${m.cost_per_hour_usd:.3f} |\n"
         )
 
-    md += """
----
-
-## 3. Выводы и подтверждение требований Фазы 2
-1. **Качество отбора (Recall / Precision):**
-   - Трёхстадийный фильтр Scan → Refine → Judge обеспечивает отсечение неинтересного контента и удержание Recall выше целевых 70%.
-2. **Точность таймкодов (Boundary Snap S5b):**
-   - Двухэтапная доводка (Pass 2 окно + S5b silencedetect/scenecut) снижает ошибку границ с ~2-3с до субсекундного диапазона (<0.5с), полностью удовлетворяя требованию плана (<= 1.5s).
-3. **Экономика и квоты:**
-   - Предварительный Scan в `low` resolution + Judge в батчах до 10 клипов укладывают суммарный расход в лимит $0.50/час стрима.
-"""
+    if dry_run:
+        md += (
+            "\n---\n\n## 3. Выводы\n"
+            "Выводов о качестве пайплайна нет: числа выше синтетические. "
+            "Для реальной оценки нужен прогон на размеченном стриме (см. `golden/README.md`).\n"
+        )
     return md
 
 
@@ -504,13 +535,21 @@ def main() -> int:
     else:
         log.info("Evaluating %d real golden streams...", len(golden_streams))
         for stream in golden_streams:
-            # In live eval, run pipeline or read existing predictions
+            preds, latency, cost = load_predictions(stream.predictions_path)
+            if not preds:
+                log.warning(
+                    "No predictions for %s (predictions_path=%r); run the pipeline first",
+                    stream.stream_id,
+                    stream.predictions_path,
+                )
             metric = evaluate_stream(
                 expert_clips=stream.expert_clips,
-                predicted_clips=[],
+                predicted_clips=preds,
                 stream_id=stream.stream_id,
                 genre=stream.genre,
                 duration_s=stream.duration_s,
+                latency_s=latency,
+                cost_usd=cost,
             )
             results.append(metric)
 
